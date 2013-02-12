@@ -4,6 +4,7 @@
   * Ensure that protocol errors are being handled correctly and not bubbling up
   * More integration tests, replication, leader changes, etc. Investigate intreseting cases kafka tests
   * Cleanup: extract protocol struct delegation to a module.
+  * When failing to send messages in sync producer, return messages that failed to send?
 
 ### 0.0.2
 
