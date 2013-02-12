@@ -1,0 +1,8 @@
+--markup-provider=redcarpet
+--markup=markdown
+--no-private
+--files LICENSE.txt
+--exclude '~$'
+--title 'Poseidon (Kafka library for Ruby)'
+--api public
+--readme README.md
