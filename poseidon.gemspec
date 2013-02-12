@@ -21,6 +21,4 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency(%q<yard>)
   gem.add_development_dependency(%q<simplecov>)
   gem.add_development_dependency(%q<daemon_controller>)
-  gem.add_development_dependency(%q<redcarpet>)
-  gem.add_development_dependency(%q<github-markup>)
 end

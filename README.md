@@ -52,7 +52,7 @@ This gem follows [SemVer](http://semver.org). In particular, the public API shou
 
 ## Requirements
 
-* Ruby 1.9.3 or higher
+* Ruby 1.9.3 or higher (1.9.2 and below not supported!!!)
 * Kafka 0.8 or higher
 
 ## Integration Tests
