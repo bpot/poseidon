@@ -1,5 +1,4 @@
 ### 0.0.1
-
   * AsyncProducer
     - Implement a bounded queue, sending thread, etc
   * Ensure that protocol errors are being handled correctly and not bubbling up
