@@ -8,7 +8,7 @@ module Poseidon
       def self.compress(s)
         io = StringIO.new
         io.set_encoding("ASCII-8BIT")
-        gz = Zlib::GzipWriter.new io, Zlib::DEFAULT_COMPRESSION, nil, :encoding => "ASCII-8BIT"
+        gz = Zlib::GzipWriter.new io, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY, :encoding => "ASCII-8BIT"
         gz.write s
         gz.close
         io.string
