@@ -1,4 +1,4 @@
-# Poseidon
+# Poseidon [![Build Status](https://travis-ci.org/bpot/poseidon.png?branch=master)](https://travis-ci.org/bpot/poseidon)
 
 Poseidon is a Kafka client. Poseidon only supports the 0.8 API and above.
 
