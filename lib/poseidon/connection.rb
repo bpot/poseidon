@@ -42,7 +42,11 @@ module Poseidon
                                 timeout,
                                 messages_for_topics) 
       send_request(req)
-      read_response(ProduceResponse)
+      if required_acks != 0
+        read_response(ProduceResponse)
+      else
+        true
+      end
     end
 
     # Execute a fetch call
