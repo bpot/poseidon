@@ -86,7 +86,11 @@ module Poseidon
 
     private
     def read_response(response_class)
-      n = @socket.read(4).unpack("N").first
+      r = @socket.read(4)
+      if r.nil?
+        raise ConnectionFailedError
+      end
+      n = r.unpack("N").first
       s = @socket.read(n)
       buffer = Protocol::ResponseBuffer.new(s)
       response_class.read(buffer)
