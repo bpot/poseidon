@@ -64,6 +64,7 @@ In order to run integration tests you must specify a `KAFKA_PATH` environment va
     # git checkout -b 0.8 remotes/origin/0.8
     # ./sbt update
     # ./sbt package
+    # ./sbt assembly-package-dependency
     # cd ~/src/poseidon/
     # KAFKA_PATH=~/src/kafka rake spec:integration:simple
 
