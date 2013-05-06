@@ -106,7 +106,7 @@ class JavaRunner
   end
 
   def file_path
-    POSEIDON_PATH + "tmp/"
+    POSEIDON_PATH + "/tmp/"
   end
 end
 
@@ -126,8 +126,8 @@ class BrokerRunner
     "log.retention.hours" => 168,
     "log.segment.bytes" => 536870912,
     "log.cleanup.interval.mins" => 1,
-    "zk.connect" => "localhost:2181",
-    "zk.connection.timeout.ms" => 1000000,
+    "zookeeper.connect" => "localhost:2181",
+    "zookeeper.connection.timeout.ms" => 1000000,
     "kafka.metrics.polling.interval.secs" => 5,
     "kafka.metrics.reporters" => "kafka.metrics.KafkaCSVMetricsReporter",
     "kafka.csv.metrics.dir" => "#{POSEIDON_PATH}/tmp/kafka_metrics",
