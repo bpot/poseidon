@@ -10,12 +10,16 @@ module Poseidon
     API_VERSION = 0
     REPLICA_ID = -1 # Replica id is always -1 for non-brokers
 
+    attr_reader :host, :port
+
     # Create a new connection
     #
     # @param [String] host Host to connect to
     # @param [Integer] port Port broker listens on
     # @param [String] client_id Unique across processes?
     def initialize(host, port, client_id)
+      @host = host
+      @port = port
       begin
         @socket = TCPSocket.new(host, port)
       rescue SystemCallError

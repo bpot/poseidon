@@ -122,7 +122,7 @@ module Poseidon
     #   after we are unable to send messages. 
     #   Number of times to retry sending of messages to a leader.
     #
-    # @option options [Integer] :request_required_acks (0)
+    # @option options [Integer] :required_acks (0)
     #   The number of acks required per request.
     #
     # @option options [Integer] :request_timeout_ms (1500)
