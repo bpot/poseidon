@@ -9,8 +9,8 @@ module Poseidon
     #   Metadata for all topics this conductor may receive.
     # @param [Object] partitioner
     #   Custom partitioner
-    def initialize(topics_metadata, partitioner)
-      @topics_metadata    = topics_metadata
+    def initialize(cluster_metadata, partitioner)
+      @cluster_metadata   = cluster_metadata
       @partitioner        = partitioner
       @partition_counter  = -1 
     end
@@ -26,7 +26,7 @@ module Poseidon
     # @return [Integer,Integer] 
     #   partition_id and broker_id to which this message should be sent
     def destination(topic, key = nil)
-      topic_metadata = @topics_metadata[topic]
+      topic_metadata = topic_metadatas[topic]
       if topic_metadata
         partition_id = determine_partition(topic_metadata, key)
         broker_id    = topic_metadata.partitions[partition_id].leader || NO_BROKER
@@ -39,6 +39,10 @@ module Poseidon
     end
 
     private
+
+    def topic_metadatas
+      @cluster_metadata.topic_metadata
+    end
 
     def determine_partition(topic_metadata, key)
       if key

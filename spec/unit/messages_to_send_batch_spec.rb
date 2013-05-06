@@ -5,14 +5,12 @@ describe MessagesToSendBatch do
     before(:each) do
       message_conductor = stub('message_conductor')
       message_conductor.stub!(:destination).and_return([0,0],[1,1])
-      MessageConductor.stub!(:new).and_return(message_conductor)
 
       @messages = [
         Message.new(:topic => "topic1", :value => "hi"),
         Message.new(:topic => "topic1", :value => "hi")
       ]
-      topics_metadata = stub('topics_metadata').as_null_object
-      @batch = MessagesToSendBatch.new(@messages, partitioner = nil, topics_metadata)
+      @batch = MessagesToSendBatch.new(@messages, message_conductor)
     end
 
     it "returns a couple messages brokers" do

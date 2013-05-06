@@ -1,21 +1,25 @@
 require 'spec_helper'
 
+include Protocol
 describe MessageConductor do
   context "two avialable partitions" do
     before(:each) do
       partitions = [
-        Protocol::PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
-        Protocol::PartitionMetadata.new(nil, 1, 2, [2,1], [2,1])
+        PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
+        PartitionMetadata.new(nil, 1, 2, [2,1], [2,1])
       ]
+      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
-      @topics_metadata = {
-        "test" => TopicMetadata.new(Protocol::TopicMetadataStruct.new(nil, "test", partitions))
-      }
+      @mr = MetadataResponse.new(nil, brokers, topics)
+
+      @cm = ClusterMetadata.new
+      @cm.update(@mr)
     end
 
     context "no custom partitioner" do
       before(:each) do
-        @mc = MessageConductor.new(@topics_metadata, nil)
+        @mc = MessageConductor.new(@cm, nil)
       end
 
       context "for unkeyed messages" do
@@ -52,7 +56,7 @@ describe MessageConductor do
     context "custom partitioner" do
       before(:each) do
         partitioner = Proc.new { |key, count| key.split("_").first.to_i % count }
-        @mc = MessageConductor.new(@topics_metadata, partitioner)
+        @mc = MessageConductor.new(@cm, partitioner)
       end
 
       it "obeys custom partitioner" do
@@ -64,7 +68,7 @@ describe MessageConductor do
     context "broken partitioner" do
       before(:each) do
         partitioner = Proc.new { |key, count| count + 1 }
-        @mc = MessageConductor.new(@topics_metadata, partitioner)
+        @mc = MessageConductor.new(@cm, partitioner)
       end
 
       it "raises InvalidPartitionError" do
@@ -79,11 +83,15 @@ describe MessageConductor do
         Protocol::PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
         Protocol::PartitionMetadata.new(nil, 1, nil, [2,1], [2,1])
       ]
+      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
-      @topics_metadata = {
-        "test" => TopicMetadata.new(Protocol::TopicMetadataStruct.new(nil, "test", partitions))
-      }
-      @mc = MessageConductor.new(@topics_metadata, nil)
+      @mr = MetadataResponse.new(nil, brokers, topics)
+
+      @cm = ClusterMetadata.new
+      @cm.update(@mr)
+
+      @mc = MessageConductor.new(@cm, nil)
     end
 
     context "keyless message" do
@@ -111,11 +119,15 @@ describe MessageConductor do
         Protocol::PartitionMetadata.new(nil, 0, nil, [1,2], [1,2]),
         Protocol::PartitionMetadata.new(nil, 1, nil, [2,1], [2,1])
       ]
+      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
-      @topics_metadata = {
-        "test" => TopicMetadata.new(Protocol::TopicMetadataStruct.new(nil, "test", partitions))
-      }
-      @mc = MessageConductor.new(@topics_metadata, nil)
+      @mr = MetadataResponse.new(nil, brokers, topics)
+
+      @cm = ClusterMetadata.new
+      @cm.update(@mr)
+
+      @mc = MessageConductor.new(@cm, nil)
     end
 
     context "keyless message" do

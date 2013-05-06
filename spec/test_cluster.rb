@@ -1,10 +1,6 @@
 require 'daemon_controller'
 
 class TestCluster
-  def self.remove_tmp
-    FileUtils.rm_rf("#{POSEIDON_PATH}/tmp")
-  end
-
   def initialize
     @zookeeper = ZookeeperRunner.new
     @broker = BrokerRunner.new(0, 9092)
@@ -22,6 +18,19 @@ class TestCluster
 end
 
 class JavaRunner
+  def self.remove_tmp
+    FileUtils.rm_rf("#{POSEIDON_PATH}/tmp")
+  end
+
+  def self.set_kafka_path!
+    if ENV['KAFKA_PATH']
+      JavaRunner.kafka_path = ENV['KAFKA_PATH']
+    else
+      puts "******To run integration specs you must set KAFKA_PATH to kafka src directory. See README*****"
+      exit
+    end
+  end
+
   def self.kafka_path=(kafka_path)
     @kafka_path = kafka_path
   end
@@ -134,7 +143,7 @@ class BrokerRunner
     "kafka.csv.metrics.reporter.enabled" => "false",
   }
 
-  def initialize(id, port)
+  def initialize(id, port, partition_count = 1)
     @id   = id
     @port = port
     @jr = JavaRunner.new("broker_#{id}", 
@@ -142,7 +151,9 @@ class BrokerRunner
                          port,
                          DEFAULT_PROPERTIES.merge(
                            "broker.id" => id,
-                           "port" => port
+                           "port" => port,
+                           "log.dir" => "#{POSEIDON_PATH}/tmp/kafka-logs_#{id}",
+                           "num.partitions" => partition_count
                          ))
   end
 

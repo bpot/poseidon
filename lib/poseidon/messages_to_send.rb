@@ -25,10 +25,9 @@ module Poseidon
       !@cluster_metadata.have_metadata_for_topics?(topic_set)
     end
 
-    def messages_for_brokers(partitioner)
+    def messages_for_brokers(message_conductor)
       topic_metadatas = @cluster_metadata.metadata_for_topics(topic_set)
-      MessagesToSendBatch.new(@messages, partitioner,
-                              topic_metadatas).messages_for_brokers
+      MessagesToSendBatch.new(@messages, message_conductor).messages_for_brokers
     end
 
     def successfully_sent(messages_for_broker)

@@ -30,8 +30,9 @@ module Poseidon
 
       handle_options(options.dup)
 
-      @cluster_metadata = ClusterMetadata.new
-      @broker_pool      = BrokerPool.new(client_id, seed_brokers)
+      @cluster_metadata   = ClusterMetadata.new
+      @message_conductor  = MessageConductor.new(@cluster_metadata, @partitioner)
+      @broker_pool        = BrokerPool.new(client_id, seed_brokers)
     end
 
     def send_messages(messages)
@@ -42,7 +43,7 @@ module Poseidon
           refresh_metadata(messages_to_send.topic_set)
         end
 
-        messages_to_send.messages_for_brokers(@partitioner).each do |messages_for_broker|
+        messages_to_send.messages_for_brokers(@message_conductor).each do |messages_for_broker|
           if send_to_broker(messages_for_broker)
             messages_to_send.successfully_sent(messages_for_broker)
           end

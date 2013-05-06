@@ -4,7 +4,7 @@ module Poseidon
   #
   # @api private
   class ClusterMetadata
-    attr_reader :brokers, :last_refreshed_at
+    attr_reader :brokers, :last_refreshed_at, :topic_metadata
     def initialize
       @brokers        = {}
       @topic_metadata = {}

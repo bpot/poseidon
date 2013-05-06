@@ -9,5 +9,9 @@ RSpec::Core::RakeTask.new('spec:integration:simple') do |t|
   t.pattern = 'spec/integration/simple/*_spec.rb'
 end
 
+RSpec::Core::RakeTask.new('spec:integration:multiple_brokers') do |t|
+  t.pattern = 'spec/integration/multiple_brokers/*_spec.rb'
+end
+
 task :spec => 'spec:unit'
 task :default => 'spec:unit'
