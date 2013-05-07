@@ -64,7 +64,7 @@ class JavaRunner
   def daemon_controller
     @dc ||= DaemonController.new(
       :identifier => @id,
-      :start_command => "#{self.class.kafka_path}/#{@start_cmd} #{config_path} &>> #{log_path} & echo $! > #{pid_path}",
+      :start_command => "#{@start_cmd} #{config_path} &>> #{log_path} & echo $! > #{pid_path}",
       :ping_command => [:tcp, '127.0.0.1', @port],
       :pid_file => pid_path,
       :log_file => log_path,
@@ -147,7 +147,7 @@ class BrokerRunner
     @id   = id
     @port = port
     @jr = JavaRunner.new("broker_#{id}", 
-                         'bin/kafka-run-class.sh kafka.Kafka', 
+                         "#{POSEIDON_PATH}/spec/bin/kafka-run-class.sh kafka.Kafka", 
                          port,
                          DEFAULT_PROPERTIES.merge(
                            "broker.id" => id,
@@ -173,7 +173,8 @@ end
 
 class ZookeeperRunner
   def initialize
-    @jr = JavaRunner.new("zookeeper", 'bin/zookeeper-server-start.sh', 
+    @jr = JavaRunner.new("zookeeper",
+                         "#{POSEIDON_PATH}/spec/bin/kafka-run-class.sh org.apache.zookeeper.server.quorum.QuorumPeerMain", 
                          2181,
                          :dataDir => "#{POSEIDON_PATH}/tmp/zookeeper",
                          :clientPort => 2181,
