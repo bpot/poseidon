@@ -72,9 +72,13 @@ module Poseidon
         raise Errors::ERROR_CODES[partition_response.error]
       else
         @highwater_mark = partition_response.highwater_mark_offset
-        partition_response.message_set.flatten.map do |m|
+        messages = partition_response.message_set.flatten.map do |m|
           FetchedMessage.new(topic_response.topic, m.value, m.key, m.offset)
         end
+        if messages.any?
+          @offset = messages.last.offset + 1
+        end
+        messages
       end
     end
 

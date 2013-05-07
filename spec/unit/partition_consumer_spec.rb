@@ -74,7 +74,7 @@ describe PartitionConsumer do
   describe "fetching messages" do
     before(:each) do
       message_set = MessageSet.new
-      message_set << Message.new(:value => "value", :key => "key")
+      message_set << Message.new(:value => "value", :key => "key", :offset => 90)
       partition_fetch_response = Protocol::PartitionFetchResponse.new(0, 0, 100, message_set)
       topic_fetch_response = Protocol::TopicFetchResponse.new('test_topic',
                                                     [partition_fetch_response])
@@ -114,6 +114,11 @@ describe PartitionConsumer do
     it "sets the highwater mark" do
       @pc.fetch
       expect(@pc.highwater_mark).to eq(100)
+    end
+
+    it "sets the latest offset" do
+      @pc.fetch
+      expect(@pc.next_offset).to eq(91)
     end
   end
 end
