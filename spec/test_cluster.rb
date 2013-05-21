@@ -1,6 +1,7 @@
 require 'daemon_controller'
 
 class TestCluster
+  attr_reader :broker, :zookeeper
   def initialize
     @zookeeper = ZookeeperRunner.new
     @broker = BrokerRunner.new(0, 9092)
@@ -50,13 +51,21 @@ class JavaRunner
 
   def start
     write_properties
-    #@pid = run
     run
   end
 
   def stop
     daemon_controller.stop
-    #Process.kill(:TERM, @pid)
+  end
+
+  def without_process
+    stop
+    begin
+      yield
+    ensure
+      start
+      sleep 5
+    end
   end
 
   private
@@ -76,9 +85,6 @@ class JavaRunner
     FileUtils.mkdir_p(log_dir)
     FileUtils.mkdir_p(pid_dir)
     daemon_controller.start
-    #cmd = "#{self.class.kafka_path}/#{@start_cmd} #{config_path} &>> #{log_path} & echo pid:$! > #{pid_path}"
-    #`#{cmd}`
-    #IO.read(pid_path).split(":")[1].to_i
   end
 
   def write_properties
@@ -167,6 +173,10 @@ class BrokerRunner
 
   def stop
     @jr.stop
+  end
+
+  def without_process
+    @jr.without_process { yield }
   end
 end
 
