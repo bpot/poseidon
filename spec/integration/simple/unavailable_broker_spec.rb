@@ -1,13 +1,13 @@
 require 'integration/simple/spec_helper'
 
-describe "unavailble broker" do
+describe "unavailable broker" do
   context "producer with a dead broker in bootstrap list" do
     before(:each) do
       @p = Producer.new(["localhost:9091","localhost:9092"], "test")
     end
 
     it "succesfully sends a message" do
-      @p.send_messages([MessageToSend.new("test", "hello")])
+      expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
 
       pc = PartitionConsumer.new("test_consumer", "localhost",
                                  9092, "test", 0, -2)
