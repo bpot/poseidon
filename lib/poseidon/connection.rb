@@ -20,18 +20,13 @@ module Poseidon
     def initialize(host, port, client_id)
       @host = host
       @port = port
-      begin
-        @socket = TCPSocket.new(host, port)
-      rescue SystemCallError
-        raise ConnectionFailedError
-      end
 
       @client_id = client_id
     end
 
     # Close broker connection
     def close
-      @socket.close
+      @socket && @socket.close
     end
   
     # Execute a produce call
@@ -41,6 +36,7 @@ module Poseidon
     # @param [Array<Protocol::MessagesForTopics>] messages_for_topics Messages to send
     # @return [ProduceResponse]
     def produce(required_acks, timeout, messages_for_topics)
+      ensure_connected
       req = ProduceRequest.new( request_common(:produce),
                                 required_acks,
                                 timeout,
@@ -59,6 +55,7 @@ module Poseidon
     # @param [Integer] min_bytes
     # @param [Integer] topic_fetches
     def fetch(max_wait_time, min_bytes, topic_fetches)
+      ensure_connected
       req = FetchRequest.new( request_common(:fetch),
                                 REPLICA_ID,
                                 max_wait_time,
@@ -69,6 +66,7 @@ module Poseidon
     end
 
     def offset(offset_topic_requests)
+      ensure_connected
       req = OffsetRequest.new(request_common(:offset),
                               REPLICA_ID,
                               offset_topic_requests)
@@ -82,6 +80,7 @@ module Poseidon
     #   A list of topics to retrive metadata for
     # @return [TopicMetadataResponse] metadata for the topics
     def topic_metadata(topic_names)
+      ensure_connected
       req = MetadataRequest.new( request_common(:metadata),
                                  topic_names)
       send_request(req)
@@ -89,6 +88,16 @@ module Poseidon
     end
 
     private
+    def ensure_connected
+      if @socket.nil? || @socket.closed?
+        begin
+          @socket = TCPSocket.new(@host, @port)
+        rescue SystemCallError
+          raise ConnectionFailedError
+        end
+      end
+    end
+
     def read_response(response_class)
       r = @socket.read(4)
       if r.nil?
@@ -99,6 +108,7 @@ module Poseidon
       buffer = Protocol::ResponseBuffer.new(s)
       response_class.read(buffer)
     rescue Errno::ECONNRESET
+      @socket = nil
       raise ConnectionFailedError
     end
 
@@ -106,6 +116,9 @@ module Poseidon
       buffer = Protocol::RequestBuffer.new
       request.write(buffer)
       @socket.write([buffer.to_s.size].pack("N") + buffer.to_s)
+    rescue Errno::EPIPE
+      @socket = nil
+      raise ConnectionFailedError
     end
 
     def request_common(request_type)
