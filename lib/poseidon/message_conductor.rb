@@ -27,9 +27,9 @@ module Poseidon
     #   partition_id and broker_id to which this message should be sent
     def destination(topic, key = nil)
       topic_metadata = topic_metadatas[topic]
-      if topic_metadata
+      if topic_metadata && topic_metadata.leader_available?
         partition_id = determine_partition(topic_metadata, key)
-        broker_id    = topic_metadata.partitions[partition_id].leader || NO_BROKER
+        broker_id    = topic_metadata.partitions[partition_id].leader
       else
         partition_id  = NO_PARTITION
         broker_id     = NO_BROKER

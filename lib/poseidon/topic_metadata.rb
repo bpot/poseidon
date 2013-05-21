@@ -46,6 +46,10 @@ module Poseidon
       struct.objects_with_errors
     end
 
+    def leader_available?
+      struct.error_class != Errors::LeaderNotAvailable
+    end
+
     def partition_count
       @partition_count ||= struct.partitions.count
     end

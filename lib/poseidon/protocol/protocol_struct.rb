@@ -74,9 +74,11 @@ module Poseidon
       end
 
       def raise_error
-        if self[:error] != Errors::NO_ERROR_CODE
-          raise Errors::ERROR_CODES[self[:error]]
-        end
+        raise error_class if error_class
+      end
+
+      def error_class
+        Errors::ERROR_CODES[self[:error]]
       end
 
       def raise_error_if_one_exists

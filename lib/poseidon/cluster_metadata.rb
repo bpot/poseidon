@@ -17,7 +17,7 @@ module Poseidon
     # @return nil
     def update(topic_metadata_response)
       update_brokers(topic_metadata_response.brokers)
-      update_topics(topic_metadata_response.topics.map { |t| TopicMetadata.new(t) })
+      update_topics(topic_metadata_response.topics)
 
       @last_refreshed_at = Time.now
       nil

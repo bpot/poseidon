@@ -8,6 +8,7 @@ RSpec.configure do |config|
     JavaRunner.set_kafka_path!
     $tc = TestCluster.new
     $tc.start
+    sleep 5
   end
 
   config.after(:suite) do
