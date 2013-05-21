@@ -8,7 +8,7 @@ describe MessageConductor do
         PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
         PartitionMetadata.new(nil, 1, 2, [2,1], [2,1])
       ]
-      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
       @mr = MetadataResponse.new(nil, brokers, topics)
@@ -83,7 +83,7 @@ describe MessageConductor do
         Protocol::PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
         Protocol::PartitionMetadata.new(nil, 1, nil, [2,1], [2,1])
       ]
-      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
       @mr = MetadataResponse.new(nil, brokers, topics)
@@ -119,7 +119,7 @@ describe MessageConductor do
         Protocol::PartitionMetadata.new(nil, 0, nil, [1,2], [1,2]),
         Protocol::PartitionMetadata.new(nil, 1, nil, [2,1], [2,1])
       ]
-      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
       @mr = MetadataResponse.new(nil, brokers, topics)

@@ -29,7 +29,7 @@ module Poseidon
       topic_metadata = topic_metadatas[topic]
       if topic_metadata && topic_metadata.leader_available?
         partition_id = determine_partition(topic_metadata, key)
-        broker_id    = topic_metadata.partitions[partition_id].leader
+        broker_id    = topic_metadata.partitions[partition_id].leader || NO_BROKER
       else
         partition_id  = NO_PARTITION
         broker_id     = NO_BROKER

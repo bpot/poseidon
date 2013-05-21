@@ -8,7 +8,7 @@ describe ClusterMetadata do
         PartitionMetadata.new(1, 1, [1,2], [1,2], nil),
         PartitionMetadata.new(2, 2, [2,1], [2,1], nil)
       ]
-      topics = [TopicMetadataStruct.new(nil, "test", partitions)]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
 
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
@@ -30,7 +30,7 @@ describe ClusterMetadata do
 
     it "provides topic metadata for a set of topics" do
       topic_metadata = @cm.metadata_for_topics(Set.new(["test"]))
-      expect(topic_metadata).to eq({ "test" => TopicMetadata.new(@mr.topics.first) })
+      expect(topic_metadata).to eq({ "test" => @mr.topics.first })
     end
 
     it "provides broker information" do
