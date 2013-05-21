@@ -98,6 +98,8 @@ module Poseidon
       s = @socket.read(n)
       buffer = Protocol::ResponseBuffer.new(s)
       response_class.read(buffer)
+    rescue Errno::ECONNRESET
+      raise ConnectionFailedError
     end
 
     def send_request(request)
