@@ -1,8 +1,11 @@
 ### 0.0.1
+  * Ensure that protocol errors are being handled correctly and not bubbling up
+  * More integration tests, replication, leader changes, etc. Investigate interesting cases in kafka's tests
+  * End-to-end integration specs
+    - In specs that test broker failure, verify that messages were actually sent/not sent with a consumer.
+ 
   * AsyncProducer
     - Implement a bounded queue, sending thread, etc
-  * Ensure that protocol errors are being handled correctly and not bubbling up
-  * More integration tests, replication, leader changes, etc. Investigate intreseting cases kafka tests
   * Cleanup: extract protocol struct delegation to a module.
   * When failing to send messages in sync producer, return messages that failed to send?
 
@@ -10,7 +13,6 @@
 
   * New Consumer/Consumer Enhancements
     - Automatically partition work among consumers (zookeeper, redis, pluggable?)
-    - Offset API (even tho it won't be in a stable ver for a while)
     - Handle case where the offset we're trying to read from no longer exists
 
   * Snappy Compression
@@ -20,3 +22,6 @@
     - new snappy ffi library with specs, docs, etc. Shave that Yak!
 
   * Benchmark/Profiling. KGIO?
+
+### 0.0.3 -- Targets Kafka 0.8.1
+  - Offset API
