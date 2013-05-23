@@ -27,3 +27,6 @@ SimpleCov.start
 
 require 'poseidon'
 include Poseidon
+
+require 'coveralls'
+Coveralls.wear!
