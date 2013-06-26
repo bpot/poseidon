@@ -45,6 +45,30 @@ describe "simple producer and consumer" do
       messages = @consumer.fetch
       expect(messages.empty?).to eq(true)
     end
+
+    it "fetches messages from the earliest offset" do
+      @producer = Producer.new(["localhost:9092"],
+                                "test_client",
+                                :type => :sync,
+                                :required_acks => 1)
+
+      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
+                                        "topic_simple_producer_and_consumer", 0, -2)
+      
+      messages = []
+      2000.times do
+        messages << MessageToSend.new("topic_simple_producer_and_consumer",'KcjNyFBtqfSbpwjjcGKckMKLUCWz83IVcp21C8FQzs8JJKKTTrc4OLxSjLpYc5z7fsncX59te2cBn0sWDRaYmRuZyttRMLMHvXrM5o3QReKPIYUKzVCFahC4cb3Ivcbb5ZuS98Ohnb7Io42Bz9FucXwwGkQyFhJwyn3nD3BYs5r8TZM8Q76CGR2kTH1rjnFeB7J3hrRKukztxCrDY3smrQE1bbVR80IF3yWlhzkdfv3cpfwnD0TKadtt21sFJANFmORAJ0HKs6Z2262hcBQyF7WcWypC2RoLWVgKVQxbouVUP7yV6YYOAQEevYrl9sOB0Yi6h1mS8fTBUmRTmWLqyl8KzwbnbQvmCvgnX26F5JEzIoXsVaoDT2ks5eep9RyE1zm5yPtbYVmd2Sz7t5ru0wj6YiAmbF7Xgiw2l4VpNOxG0Ec6rFxXRXs0bahyBd2YtxpGyZBeruIK1RAN4n0t97xVXgZG5CGoVhL1oRDxw2pTbwEO1cvwHiiYXpXSqaxF7G9kiiPsQt24Vu7chXrJT7Xqv4RIg1aOT5Os5JVlISaJCmx8ZLtbC3OjAdGtF1ZkDuUeQHHohqeKh0qBJjw7Rv1oSDwcM0MRazjF36jijpYg26Qml9lSEnGYIFLQWHVDWKqqhl2GIntjxDXn1IyI')
+      end
+      expect(@producer.send_messages(messages)).to eq(true)
+      
+      messages = @consumer.fetch
+      expect(messages.length).to be > 2 
+      
+      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
+                                        "topic_simple_producer_and_consumer", 0, -2)
+      messages = @consumer.fetch(:max_bytes => 1400000)
+      expect(messages.length).to be > 2
+    end 
   end
 
   describe "broker that becomes unavailable" do
