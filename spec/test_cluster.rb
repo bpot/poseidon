@@ -73,7 +73,7 @@ class JavaRunner
   def daemon_controller
     @dc ||= DaemonController.new(
       :identifier => @id,
-      :start_command => "#{@start_cmd} #{config_path} &>> #{log_path} & echo $! > #{pid_path}",
+      :start_command => "#{@start_cmd} #{config_path} >>#{log_path} 2>&1 & echo $! > #{pid_path}",
       :ping_command => [:tcp, '127.0.0.1', @port],
       :pid_file => pid_path,
       :log_file => log_path,
