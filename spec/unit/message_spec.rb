@@ -59,6 +59,20 @@ describe Message do
     end
   end
 
+  context "invalid utf8 string for value" do
+    it "builds the payload without error" do
+      expect {
+        s = "asdf\xffasdf"
+        m = Message.new(:value => s,
+                        :key => "key",
+                        :topic => "topic")
+
+        req_buf = Protocol::RequestBuffer.new
+        m.write(req_buf)
+      }.to_not raise_error
+    end
+  end
+
   it "decompresses a compressed value"
 
   it "raises an error if you try to decompress an uncompressed value"

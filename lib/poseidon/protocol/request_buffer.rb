@@ -11,6 +11,7 @@ module Poseidon
       end
 
       def append(string)
+        string.force_encoding("ASCII-8BIT")
         @s << string
         nil
       end
