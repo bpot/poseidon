@@ -61,13 +61,13 @@ describe Message do
 
   context "invalid utf8 string for value" do
     it "builds the payload without error" do
-      expect {
-        s = "asdf\xffasdf"
-        m = Message.new(:value => s,
-                        :key => "key",
-                        :topic => "topic")
+      s = "asdf\xffasdf"
+      m = Message.new(:value => s,
+                      :key => "key",
+                      :topic => "topic")
 
-        req_buf = Protocol::RequestBuffer.new
+      req_buf = Protocol::RequestBuffer.new
+      expect {
         m.write(req_buf)
       }.to_not raise_error
     end
