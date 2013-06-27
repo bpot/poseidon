@@ -11,6 +11,7 @@ module Poseidon
       end
 
       def append(string)
+        string = string.dup if string.frozen?
         string.force_encoding("ASCII-8BIT")
         @s << string
         nil

@@ -73,6 +73,20 @@ describe Message do
     end
   end
 
+  context "frozen string for value" do
+    it "builds the payload without error" do
+      s = "asdffasdf".freeze
+      m = Message.new(:value => s,
+                      :key => "key",
+                      :topic => "topic")
+
+      req_buf = Protocol::RequestBuffer.new
+      expect {
+        m.write(req_buf)
+      }.to_not raise_error
+    end
+  end
+
   it "decompresses a compressed value"
 
   it "raises an error if you try to decompress an uncompressed value"
