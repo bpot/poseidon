@@ -84,6 +84,18 @@ describe SyncProducer do
       end
     end
 
+    context "no retries" do
+      before(:each) do
+        @mbts.stub!(:all_sent?).and_return(false)
+        @sp = SyncProducer.new("test_client", [], max_send_retries: 0)
+      end
+
+      it "does not call sleep" do
+        Kernel.should_receive(:sleep).exactly(0).times
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+      end
+    end
+
     context "succeeds on first attempt" do
       before(:each) do
         @mbts.stub!(:all_sent?).and_return(true)
