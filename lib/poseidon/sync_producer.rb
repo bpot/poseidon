@@ -53,7 +53,7 @@ module Poseidon
           end
         end
 
-        if messages_to_send.all_sent?
+        if messages_to_send.all_sent? || @max_send_retries == 0
           break
         else
           Kernel.sleep retry_backoff_ms / 1000.0
