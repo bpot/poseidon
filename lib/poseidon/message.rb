@@ -34,6 +34,12 @@ module Poseidon
     def self.read(buffer)
       m = Message.new
       m.struct = Protocol::MessageWithOffsetStruct.read(buffer)
+
+      # Return nil if the message is truncated.
+      if m.struct.message.truncated?
+        return nil
+      end
+
       if m.struct.message.checksum_failed?
         raise Errors::ChecksumError
       end

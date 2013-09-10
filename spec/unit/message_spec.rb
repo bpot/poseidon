@@ -56,6 +56,23 @@ describe Message do
     end
   end
 
+  describe "truncated message" do
+    before(:each) do
+      m = Message.new(:value => "value",
+                      :key => "key",
+                      :topic => "topic")
+
+      req_buf = Protocol::RequestBuffer.new
+      m.write(req_buf)
+
+      @s = req_buf.to_s
+    end
+
+    it "reading returns nil" do
+      expect(Message.read(Protocol::ResponseBuffer.new(@s[0..-4]))).to eq(nil)
+    end
+  end
+
   context "invalid utf8 string for value" do
     it "builds the payload without error" do
       s = "asdf\xffasdf"
