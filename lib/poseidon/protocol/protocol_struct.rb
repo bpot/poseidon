@@ -28,12 +28,21 @@ module Poseidon
         self
       end
 
+      def self.truncatable
+        @truncatable = true
+        self
+      end
+
       def self.prepend_size?
         @prepend_size
       end
 
       def self.prepend_crc32?
         @prepend_crc32
+      end
+
+      def self.truncatable?
+        @truncatable
       end
 
       def self.size_bound_array(member)
@@ -157,12 +166,24 @@ module Poseidon
             if @crc32 != @computed_crc32
               @checksum_failed = true
             end
+            expected_bytes_remaining = @size - 4
+          else
+            expected_bytes_remaining = @size
+          end
+
+
+          if self.class.truncatable? && expected_bytes_remaining > buffer.bytes_remaining
+            @truncated = true
+            return
           end
         end
 
         members.each do |member|
           begin
             self[member] = read_member(buffer, member)
+          rescue DecodingError
+            # Just reraise instead of producing a crazy nested exception
+            raise
           rescue
             raise DecodingError, "Error while reading #{member} in #{self.class} (#{$!.class}: #{$!.message}))"
           end
@@ -180,8 +201,8 @@ module Poseidon
             end
 
             array = []
-            while !array_buffer.eof?
-              array << read_type(array_buffer, type.first)
+            while !array_buffer.eof? && (v = read_type(array_buffer, type.first))
+              array << v
             end
             array
           else
@@ -207,6 +228,10 @@ module Poseidon
 
       def checksum_failed?
         @checksum_failed
+      end
+
+      def truncated?
+        @truncated
       end
     end
   end

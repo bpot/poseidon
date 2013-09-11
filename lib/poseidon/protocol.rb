@@ -23,7 +23,7 @@ module Poseidon
     MessageStruct = ProtocolStruct.new(:magic_type => :int8,
                                        :attributes => :int8,
                                        :key => :bytes,
-                                       :value => :bytes).prepend_size.prepend_crc32
+                                       :value => :bytes).prepend_size.prepend_crc32.truncatable
     MessageWithOffsetStruct = ProtocolStruct.new(:offset => :int64,
                                                  :message => MessageStruct)
      

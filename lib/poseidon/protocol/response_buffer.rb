@@ -56,6 +56,10 @@ module Poseidon
         end
       end
 
+      def bytes_remaining
+        @s.size - @pos
+      end
+
       def eof?
         @pos == @s.size
       end
