@@ -9,8 +9,8 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Bob Potter"]
   gem.email         = ["bobby.potter@gmail.com"]
   gem.description   = %q{A Kafka (http://kafka.apache.org/) producer and consumer}
-  gem.summary       = %q{Poseidon is a producer and consumer implementation for Kafka >0.8}
-  gem.homepage      = ""
+  gem.summary       = %q{Poseidon is a producer and consumer implementation for Kafka >= 0.8}
+  gem.homepage      = "https://github.com/bpot/poseidon"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
