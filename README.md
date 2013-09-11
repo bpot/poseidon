@@ -4,9 +4,12 @@ Poseidon is a Kafka client. Poseidon only supports the 0.8 API and above.
 
 **Until 1.0.0 this should be considered ALPHA software and not neccessarily production ready.**
 
-* [API Documentation](http://rubydoc.info/github/bpot/poseidon)
-
 ## Usage
+
+### API Documentation
+
+* [Latest release](http://rubydoc.info/gems/poseidon)
+* [Github master](http://rubydoc.info/github/bpot/poseidon)
 
 ### Installing a Kafka broker locally
 
