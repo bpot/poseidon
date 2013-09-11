@@ -118,10 +118,6 @@ module Poseidon
       compression_codec.decompress(value)
     end
 
-    def checksum_correct?
-      !struct.message.checksum_failed?
-    end
-
     private
     def attributes
       @struct.message.attributes

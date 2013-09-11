@@ -54,9 +54,6 @@ describe Message do
         expect { Message.read(Protocol::ResponseBuffer.new(@s)) }.to_not raise_error
       end
     end
-
-    it 'knows when the checksum failed' do
-    end
   end
 
   context "invalid utf8 string for value" do
