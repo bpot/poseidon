@@ -47,6 +47,16 @@ module Poseidon
       @brokers[broker_id]
     end
 
+    # Return lead broker for topic and partition
+    def lead_broker_for_partition(topic_name, partition)
+      broker_id = @topic_metadata[topic_name].partition_leader(partition)
+      if broker_id
+        @brokers[broker_id]
+      else
+        nil
+      end
+    end
+
     private
     def update_topics(topics)
       topics.each do |topic|

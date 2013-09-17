@@ -61,5 +61,14 @@ module Poseidon
     def available_partition_count
       @available_partition_count ||= available_partition_leader_ids.count
     end
+
+    def partition_leader(partition_id)
+      partition = struct.partitions.find { |p| p.id == partition_id }
+      if partition
+        partition.leader
+      else
+        nil
+      end
+    end
   end
 end
