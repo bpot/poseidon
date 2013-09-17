@@ -10,6 +10,23 @@ module Poseidon
     # as recent as the last fetch call.
     attr_reader :highwater_mark
 
+    attr_reader :host, :port
+
+    # Returns a consumer pointing at the lead broker for the partition.
+    #
+    # Eventually this will be replaced by higher level consumer functionality,
+    # this is a stop-gap.
+    #
+    def self.consumer_for_partition(client_id, seed_brokers, topic, partition, offset, options = {})
+      broker_pool = BrokerPool.new(client_id, seed_brokers)
+
+      cluster_metadata = ClusterMetadata.new
+      cluster_metadata.update(broker_pool.fetch_metadata([topic]))
+
+      broker = cluster_metadata.lead_broker_for_partition(topic, partition)
+      new(client_id, broker.host, broker.port, topic, partition, offset, options)
+    end
+
     # Create a new consumer which reads the specified topic and partition from
     # the host.
     #
@@ -37,6 +54,9 @@ module Poseidon
     #
     # @api public
     def initialize(client_id, host, port, topic, partition, offset, options = {})
+      @host = host
+      @port = port
+
       @connection = Connection.new(host, port, client_id)
       @topic = topic
       @partition = partition

@@ -5,8 +5,8 @@ describe ClusterMetadata do
   describe "populated" do
     before(:each) do
       partitions = [
-        PartitionMetadata.new(1, 1, [1,2], [1,2], nil),
-        PartitionMetadata.new(2, 2, [2,1], [2,1], nil)
+        PartitionMetadata.new(nil, 1, 1, [1,2], [1,2]),
+        PartitionMetadata.new(nil, 2, 2, [2,1], [2,1])
       ]
       topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
 
@@ -36,6 +36,11 @@ describe ClusterMetadata do
     it "provides broker information" do
       broker = @cm.broker(1)
       expect(broker).to eq(@mr.brokers.first)
+    end
+
+    it "provides the lead broker for a partition" do
+      expect(@cm.lead_broker_for_partition("test",1).id).to eq(1)
+      expect(@cm.lead_broker_for_partition("test",2).id).to eq(2)
     end
   end
 end
