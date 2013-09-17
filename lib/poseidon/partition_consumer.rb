@@ -12,6 +12,8 @@ module Poseidon
 
     attr_reader :host, :port
 
+    attr_reader :offset
+
     # Returns a consumer pointing at the lead broker for the partition.
     #
     # Eventually this will be replaced by higher level consumer functionality,
