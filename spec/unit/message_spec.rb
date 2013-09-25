@@ -87,6 +87,22 @@ describe Message do
     end
   end
 
+  context "utf8 string with multibyte characters" do
+    it "roundtrips correctly" do
+      s = "the µ is two bytes"
+      m = Message.new(:value => s,
+                      :key => "key",
+                      :topic => "topic")
+
+      req_buf = Protocol::RequestBuffer.new
+      m.write(req_buf)
+
+      resp_buf = Protocol::ResponseBuffer.new(req_buf.to_s)
+
+      expect(Message.read(resp_buf).value).to eq(s.force_encoding("ASCII-8BIT"))
+    end
+  end
+
   context "frozen string for value" do
     it "builds the payload without error" do
       s = "asdffasdf".freeze
