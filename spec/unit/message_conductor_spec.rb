@@ -24,9 +24,13 @@ describe MessageConductor do
 
       context "for unkeyed messages" do
         it "round robins which partition the message should go to" do
-          [0,1,0,1].each do |destination|
-            expect(@mc.destination("test").first).to eq(destination)
+          destinations = 4.times.map do
+            @mc.destination("test").first
           end
+
+          first = [destinations[0], destinations[2]]
+          second = [destinations[1], destinations[3]]
+          expect([first.uniq, second.uniq].sort).to eq([[0],[1]])
         end
 
         context "unknown topic" do
