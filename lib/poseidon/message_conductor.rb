@@ -12,7 +12,9 @@ module Poseidon
     def initialize(cluster_metadata, partitioner)
       @cluster_metadata   = cluster_metadata
       @partitioner        = partitioner
-      @partition_counter  = -1 
+
+      # Don't always start from partition 0
+      @partition_counter  = rand(65536)
     end
 
     # Determines which partition a message should be sent to.
