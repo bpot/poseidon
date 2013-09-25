@@ -116,7 +116,7 @@ module Poseidon
       buffer = Protocol::RequestBuffer.new
       request.write(buffer)
       @socket.write([buffer.to_s.size].pack("N") + buffer.to_s)
-    rescue Errno::EPIPE
+    rescue Errno::EPIPE, Errno::ECONNRESET
       @socket = nil
       raise ConnectionFailedError
     end
