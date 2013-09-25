@@ -40,7 +40,7 @@ module Poseidon
         if string.nil?
           int16(-1)
         else
-          int16(string.size)
+          int16(string.bytesize)
           append(string)
         end
       end
@@ -49,13 +49,13 @@ module Poseidon
         if string.nil?
           int32(-1)
         else
-          int32(string.size)
+          int32(string.bytesize)
           append(string)
         end
       end
 
       def prepend_crc32
-        checksum_pos = @s.size
+        checksum_pos = @s.bytesize
         @s += " "
         yield
         @s[checksum_pos] = [Zlib::crc32(@s[(checksum_pos+1)..-1])].pack("N")
@@ -63,10 +63,10 @@ module Poseidon
       end
 
       def prepend_size
-        size_pos = @s.size
+        size_pos = @s.bytesize
         @s += " "
         yield
-        @s[size_pos] = [(@s.size-1) - size_pos].pack("N")
+        @s[size_pos] = [(@s.bytesize-1) - size_pos].pack("N")
         nil
       end
 

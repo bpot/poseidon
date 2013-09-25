@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'spec_helper'
 
 describe Message do
@@ -84,6 +85,22 @@ describe Message do
       expect {
         m.write(req_buf)
       }.to_not raise_error
+    end
+  end
+
+  context "utf8 string with multibyte characters" do
+    it "roundtrips correctly" do
+      s = "the µ is two bytes"
+      m = Message.new(:value => s,
+                      :key => "key",
+                      :topic => "topic")
+
+      req_buf = Protocol::RequestBuffer.new
+      m.write(req_buf)
+
+      resp_buf = Protocol::ResponseBuffer.new(req_buf.to_s)
+
+      expect(Message.read(resp_buf).value).to eq(s.force_encoding("ASCII-8BIT"))
     end
   end
 
