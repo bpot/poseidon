@@ -1,3 +1,9 @@
+# 0.0.3
+
+* Better distribute messages across partitions.
+* Handle broken connections better.
+* Gracefully handle attempts to send an empty set of messages.
+
 # 0.0.2
 
 * Added ability to create a partitioner consumer for a topic+partition using topic metadata.
