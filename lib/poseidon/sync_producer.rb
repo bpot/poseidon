@@ -36,6 +36,8 @@ module Poseidon
     end
 
     def send_messages(messages)
+      return if messages.empty?
+
       messages_to_send = MessagesToSend.new(messages, @cluster_metadata)
 
       (@max_send_retries+1).times do
