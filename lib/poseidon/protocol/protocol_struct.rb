@@ -158,6 +158,11 @@ module Poseidon
 
       def read(buffer)
         if self.class.prepend_size?
+          if !have_header?(buffer)
+            @truncated = true
+            return
+          end
+
           @size = buffer.int32
 
           if self.class.prepend_crc32?
@@ -170,7 +175,6 @@ module Poseidon
           else
             expected_bytes_remaining = @size
           end
-
 
           if self.class.truncatable? && expected_bytes_remaining > buffer.bytes_remaining
             @truncated = true
@@ -187,6 +191,20 @@ module Poseidon
           rescue
             raise DecodingError, "Error while reading #{member} in #{self.class} (#{$!.class}: #{$!.message}))"
           end
+        end
+      end
+
+      def have_header?(buffer)
+        if self.class.truncatable?
+          if self.class.prepend_crc32?
+            header_bytes = 8
+          else
+            header_bytes = 4
+          end
+
+          return buffer.bytes_remaining >= header_bytes
+        else
+          return true
         end
       end
 
