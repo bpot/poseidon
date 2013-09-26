@@ -1,3 +1,8 @@
+# 0.0.4
+
+* Don't truncate UTF8 Messages [GH-18]
+* Gracefully handle truncated fetch reponses [GH-19]
+
 # 0.0.3
 
 * Better distribute messages across partitions.
