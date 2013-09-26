@@ -82,9 +82,13 @@ module Poseidon
     #
     # @api public
     def fetch(options = {})
-      fetch_max_wait = options[:max_wait] || max_wait_ms
-      fetch_max_bytes = options[:max_bytes] || max_bytes
-      fetch_min_bytes = options[:min_bytes] || min_bytes
+      fetch_max_wait = options.delete(:max_wait) || max_wait_ms
+      fetch_max_bytes = options.delete(:max_bytes) || max_bytes
+      fetch_min_bytes = options.delete(:min_bytes) || min_bytes
+
+      if options.keys.any?
+        raise ArgumentError, "Unknown options: #{options.keys.inspect}"
+      end
 
       topic_fetches = build_topic_fetch_request(fetch_max_bytes)
       fetch_response = @connection.fetch(fetch_max_wait, fetch_min_bytes, topic_fetches)
