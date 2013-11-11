@@ -69,6 +69,14 @@ describe PartitionConsumer do
         expect(pc.next_offset).to eq(0)
       end
     end
+
+    context "when offset is :second_last_offset" do
+      it "resolves offset to one less than the server offset" do
+        pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic",
+                                   0, :second_latest_offset)
+        expect(pc.next_offset).to eq(99)
+      end
+    end
   end
 
   describe "fetching messages" do

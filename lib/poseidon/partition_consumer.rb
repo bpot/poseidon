@@ -40,8 +40,9 @@ module Poseidon
     # @param [Integer,Symbol] offset 
     #   Offset to start reading from.
     #   There are a couple special offsets which can be passed as symbols:
-    #     :earliest_offset Start reading from the first offset the server has. 
-    #     :latest_offset   Start reading from the latest offset the server has. 
+    #     :earliest_offset       Start reading from the first offset the server has.
+    #     :latest_offset         Start reading from the latest offset the server has.
+    #     :second_latest_offset  Start reading from the second latest offset the server has, giving the last event that has already occured.
     #
     # @param [Hash] options
     #   Theses options can all be overridden in each individual fetch command.
@@ -63,7 +64,7 @@ module Poseidon
       @topic = topic
       @partition = partition
       if Symbol === offset
-        raise ArgumentError, "Unknown special offset type: #{offset}" unless [:earliest_offset, :latest_offset].include?(offset)
+        raise ArgumentError, "Unknown special offset type: #{offset}" unless [:earliest_offset, :latest_offset, :second_latest_offset].include?(offset)
       end
       @offset = offset
       handle_options(options)
@@ -141,30 +142,38 @@ module Poseidon
     def resolve_offset_if_necessary
       return unless Symbol === @offset || @offset < 0
 
-      if @offset == :earliest_offset
-        @offset = -2
-      elsif @offset == :latest_offset
-        @offset = -1
+
+      protocol_offset = case @offset
+      when :earliest_offset
+        -2
+      when :latest_offset, :second_latest_offset
+        -1
+      else
+        @offset
       end
 
-      topic_offset_responses = @connection.offset(build_topic_offset_request)
+      topic_offset_responses = @connection.offset(build_topic_offset_request(protocol_offset))
       partition_offsets = topic_offset_responses.first.partition_offsets
       if partition_offsets.first.error != Errors::NO_ERROR_CODE
         raise Errors::ERROR_CODES[partition_offsets.first.error]
       end
 
       offset_struct = partition_offsets.first.offsets.first
-      if offset_struct.nil?
-        @offset = 0
+      @offset = if offset_struct.nil?
+        0
       else
-        @offset = offset_struct.offset
+        if @offset == :second_latest_offset
+          offset_struct.offset - 1
+        else
+          offset_struct.offset
+        end
       end
     end
 
-    def build_topic_offset_request
+    def build_topic_offset_request(protocol_offset)
       partition_offset_request = Protocol::PartitionOffsetRequest.new(
         @partition,
-        @offset,
+        protocol_offset,
         max_number_of_offsets = 1)
         
       [Protocol::TopicOffsetRequest.new(@topic, [partition_offset_request])]
