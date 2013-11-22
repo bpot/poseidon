@@ -14,7 +14,7 @@ describe PartitionConsumer do
   describe "creation" do
     context "when passed unknown options" do
       it "raises an ArgumentError" do
-        expect { PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0,-2, :unknown => true) }.to raise_error(ArgumentError)
+        expect { PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0,:earliest_offset, :unknown => true) }.to raise_error(ArgumentError)
       end
     end
 
@@ -30,14 +30,14 @@ describe PartitionConsumer do
       it "resolves offset if it's not set" do
         @connection.should_receive(:offset).and_return(@offset_response)
         pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic",
-                                   0, -2)
+                                   0, :earliest_offset)
 
         pc.next_offset
       end
 
       it "returns resolved offset" do
         pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic",
-                                   0, -2)
+                                   0, :earliest_offset)
         expect(pc.next_offset).to eq(100)
       end
     end
@@ -54,7 +54,7 @@ describe PartitionConsumer do
       it "is raised" do
         @offset_response.first.partition_offsets.first.stub!(:error).and_return(2)
         pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic",
-                                   0, -2)
+                                   0, :earliest_offset)
 
         expect { pc.next_offset }.to raise_error(Errors::InvalidMessage)
       end
@@ -63,18 +63,18 @@ describe PartitionConsumer do
     context "when no offset exists" do
       it "sets offset to 0" do
         pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic",
-                                   0, -2)
+                                   0, :earliest_offset)
 
         @offset_response.first.partition_offsets.first.stub!(:offsets).and_return([])
         expect(pc.next_offset).to eq(0)
       end
     end
 
-    context "when offset is :second_last_offset" do
-      it "resolves offset to one less than the server offset" do
+    context "when offset negative" do
+      it "resolves offset to one " do
         pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic",
-                                   0, :second_latest_offset)
-        expect(pc.next_offset).to eq(99)
+                                   0, -10)
+        expect(pc.next_offset).to eq(90)
       end
     end
   end
@@ -89,7 +89,7 @@ describe PartitionConsumer do
       @response = Protocol::FetchResponse.new(stub('common'), [topic_fetch_response])
 
       @connection.stub(:fetch).and_return(@response)
-      @pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, -2)
+      @pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, :earliest_offset)
     end
 
     it "returns FetchedMessage objects" do
@@ -104,7 +104,7 @@ describe PartitionConsumer do
     context "when options are passed" do
       it "overrides object defaults" do
         @connection.should_receive(:fetch).with(20_000, 0, anything)
-        @pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, -2, :max_wait_ms => 20_000)
+        @pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, :earliest_offset, :max_wait_ms => 20_000)
 
         @pc.fetch
       end

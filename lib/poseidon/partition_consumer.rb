@@ -38,11 +38,10 @@ module Poseidon
     # @param [String] topic Topic to read from
     # @param [Integer] partition Partitions are zero indexed.
     # @param [Integer,Symbol] offset 
-    #   Offset to start reading from.
+    #   Offset to start reading from. A negative offset can also be passed.
     #   There are a couple special offsets which can be passed as symbols:
     #     :earliest_offset       Start reading from the first offset the server has.
     #     :latest_offset         Start reading from the latest offset the server has.
-    #     :second_latest_offset  Start reading from the second latest offset the server has, giving the last event that has already occured.
     #
     # @param [Hash] options
     #   Theses options can all be overridden in each individual fetch command.
@@ -64,7 +63,7 @@ module Poseidon
       @topic = topic
       @partition = partition
       if Symbol === offset
-        raise ArgumentError, "Unknown special offset type: #{offset}" unless [:earliest_offset, :latest_offset, :second_latest_offset].include?(offset)
+        raise ArgumentError, "Unknown special offset type: #{offset}" unless [:earliest_offset, :latest_offset].include?(offset)
       end
       @offset = offset
       handle_options(options)
@@ -142,14 +141,13 @@ module Poseidon
     def resolve_offset_if_necessary
       return unless Symbol === @offset || @offset < 0
 
-
       protocol_offset = case @offset
       when :earliest_offset
         -2
-      when :latest_offset, :second_latest_offset
+      when :latest_offset
         -1
       else
-        @offset
+        -1
       end
 
       topic_offset_responses = @connection.offset(build_topic_offset_request(protocol_offset))
@@ -159,14 +157,13 @@ module Poseidon
       end
 
       offset_struct = partition_offsets.first.offsets.first
+
       @offset = if offset_struct.nil?
         0
+      elsif @offset.kind_of?(Fixnum) && @offset < 0
+        offset_struct.offset + @offset
       else
-        if @offset == :second_latest_offset
-          offset_struct.offset - 1
-        else
-          offset_struct.offset
-        end
+        offset_struct.offset
       end
     end
 
