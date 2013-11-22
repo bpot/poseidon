@@ -94,7 +94,13 @@ module Poseidon
       fetch_response = @connection.fetch(fetch_max_wait, fetch_min_bytes, topic_fetches)
       topic_response = fetch_response.topic_fetch_responses.first 
       partition_response = topic_response.partition_fetch_responses.first
-      if partition_response.error != Errors::NO_ERROR_CODE
+
+      unless partition_response.error == Errors::NO_ERROR_CODE
+        if @offset < 0 && Errors::ERROR_CODES[partition_response.error] == Errors::OffsetOutOfRange
+          @offset = :earliest_offset
+          return fetch(options)
+        end
+
         raise Errors::ERROR_CODES[partition_response.error]
       else
         @highwater_mark = partition_response.highwater_mark_offset

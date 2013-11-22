@@ -110,6 +110,16 @@ describe PartitionConsumer do
       end
     end
 
+    context "when negative offset beyond beginning of partition is passed" do
+      it "starts from the earliest offset" do
+        @pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, -10000)
+        pfr = @response.topic_fetch_responses.first.partition_fetch_responses.first
+        pfr.stub!(:error).and_return(1, 1, 0)
+
+        @pc.fetch
+      end
+    end
+
     context "when call returns an error" do
       it "is raised" do
         pfr = @response.topic_fetch_responses.first.partition_fetch_responses.first
