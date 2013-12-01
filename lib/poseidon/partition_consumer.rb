@@ -38,10 +38,10 @@ module Poseidon
     # @param [String] topic Topic to read from
     # @param [Integer] partition Partitions are zero indexed.
     # @param [Integer,Symbol] offset 
-    #   Offset to start reading from.
+    #   Offset to start reading from. A negative offset can also be passed.
     #   There are a couple special offsets which can be passed as symbols:
-    #     :earliest_offset Start reading from the first offset the server has. 
-    #     :latest_offset   Start reading from the latest offset the server has. 
+    #     :earliest_offset       Start reading from the first offset the server has.
+    #     :latest_offset         Start reading from the latest offset the server has.
     #
     # @param [Hash] options
     #   Theses options can all be overridden in each individual fetch command.
@@ -94,7 +94,13 @@ module Poseidon
       fetch_response = @connection.fetch(fetch_max_wait, fetch_min_bytes, topic_fetches)
       topic_response = fetch_response.topic_fetch_responses.first 
       partition_response = topic_response.partition_fetch_responses.first
-      if partition_response.error != Errors::NO_ERROR_CODE
+
+      unless partition_response.error == Errors::NO_ERROR_CODE
+        if @offset < 0 && Errors::ERROR_CODES[partition_response.error] == Errors::OffsetOutOfRange
+          @offset = :earliest_offset
+          return fetch(options)
+        end
+
         raise Errors::ERROR_CODES[partition_response.error]
       else
         @highwater_mark = partition_response.highwater_mark_offset
@@ -141,30 +147,36 @@ module Poseidon
     def resolve_offset_if_necessary
       return unless Symbol === @offset || @offset < 0
 
-      if @offset == :earliest_offset
-        @offset = -2
-      elsif @offset == :latest_offset
-        @offset = -1
+      protocol_offset = case @offset
+      when :earliest_offset
+        -2
+      when :latest_offset
+        -1
+      else
+        -1
       end
 
-      topic_offset_responses = @connection.offset(build_topic_offset_request)
+      topic_offset_responses = @connection.offset(build_topic_offset_request(protocol_offset))
       partition_offsets = topic_offset_responses.first.partition_offsets
       if partition_offsets.first.error != Errors::NO_ERROR_CODE
         raise Errors::ERROR_CODES[partition_offsets.first.error]
       end
 
       offset_struct = partition_offsets.first.offsets.first
-      if offset_struct.nil?
-        @offset = 0
+
+      @offset = if offset_struct.nil?
+        0
+      elsif @offset.kind_of?(Fixnum) && @offset < 0
+        offset_struct.offset + @offset
       else
-        @offset = offset_struct.offset
+        offset_struct.offset
       end
     end
 
-    def build_topic_offset_request
+    def build_topic_offset_request(protocol_offset)
       partition_offset_request = Protocol::PartitionOffsetRequest.new(
         @partition,
-        @offset,
+        protocol_offset,
         max_number_of_offsets = 1)
         
       [Protocol::TopicOffsetRequest.new(@topic, [partition_offset_request])]
