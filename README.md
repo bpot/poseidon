@@ -60,14 +60,8 @@ This gem follows [SemVer](http://semver.org). In particular, the public API shou
 
 ## Integration Tests
 
-In order to run integration tests you must specify a `KAFKA_PATH` environment variable which points to a built Kafka installation.  There are more detailed [instructions](https://cwiki.apache.org/KAFKA/kafka-08-quick-start.html) on the Kafka wiki, but the following should allow you to run integration tests.
+In order to run integration tests you must specify a `KAFKA_PATH` environment variable which points to a built Kafka installation.  To build Kafka locally follow the [instructions](http://kafka.apache.org/documentation.html#quickstart) provided by the project.
 
-    # cd ~/src/
-    # git clone https://git-wip-us.apache.org/repos/asf/kafka.git
-    # git checkout -b 0.8 remotes/origin/0.8
-    # ./sbt update
-    # ./sbt package
-    # ./sbt assembly-package-dependency
     # cd ~/src/poseidon/
     # KAFKA_PATH=~/src/kafka rake spec:integration:simple
 
