@@ -63,6 +63,7 @@ This gem follows [SemVer](http://semver.org). In particular, the public API shou
 In order to run integration tests you must specify a `KAFKA_PATH` environment variable which points to a built Kafka installation.  To build Kafka locally follow the [instructions](http://kafka.apache.org/documentation.html#quickstart) provided by the project.
 
     # cd ~/src/poseidon/
-    # KAFKA_PATH=~/src/kafka rake spec:integration:simple
+    # bundle
+    # KAFKA_PATH=~/src/kafka bundle exec rake spec:integration:simple
 
 The poseidon test suite will take care of spinning up and down the broker(s) needed for the integration tests.
