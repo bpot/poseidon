@@ -6,12 +6,22 @@ module Poseidon
       end
 
       def self.compress(s)
-        raise "Unimplemented"
+        check!
+        Snappy.deflate(s)
       end
 
       def self.decompress(s)
-        raise "Unimplemented"
+        check!
+        Snappy.inflate(s)
       end
+
+      def self.check!
+        @checked ||= begin
+          raise "Snappy compression is not available, please install the 'snappy' gem"
+          true
+        end
+      end
+
     end
   end
 end
