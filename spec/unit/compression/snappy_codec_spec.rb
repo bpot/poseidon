@@ -37,7 +37,7 @@ describe Poseidon::Compression::SnappyCodec do
     expect(msg[0].value).to eq(%({"a":"UtaaKYLHMCwiAA-l","b":"UtaaKYLHMCwiAA-m","c":1389795881}))
   end
 
-  it "should unicode messages" do
+  it "should decompress unicode messages" do
     str = "\x82SNAPPY\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00:?\x00\x00\x19\x01\xCC3\xBA?\x91\xFA\x00\x00\xFF\xFF\xFF\xFF\x00\x00\x00%{\"a\":\"UtaitILHMDAAAAfU\",\"b\":\"\xE6\x97\xA5\xE6\x9C\xAC\"}".force_encoding(Encoding::BINARY)
     buf = Protocol::ResponseBuffer.new(described_class.decompress(str))
     msg = MessageSet.read_without_size(buf).flatten
