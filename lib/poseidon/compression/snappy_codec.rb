@@ -17,8 +17,10 @@ module Poseidon
 
       def self.check!
         @checked ||= begin
-          raise "Snappy compression is not available, please install the 'snappy' gem"
+          require 'snappy'
           true
+        rescue LoadError
+          raise "Snappy compression is not available, please install the 'snappy' gem"
         end
       end
 
