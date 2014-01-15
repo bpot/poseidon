@@ -7,44 +7,44 @@ module Poseidon
       end
 
       def int8
-        byte = @s.slice(@pos, 1).unpack("C").first
+        byte = @s.byteslice(@pos, 1).unpack("C").first
         @pos += 1
         byte
       end
 
       def int16
-        short = @s.slice(@pos, 2).unpack("s>").first
+        short = @s.byteslice(@pos, 2).unpack("s>").first
         @pos += 2
         short
       end
 
       def int32
-        int = @s.slice(@pos, 4).unpack("l>").first
+        int = @s.byteslice(@pos, 4).unpack("l>").first
         @pos += 4
         int
       end
 
       def int64
-        long = @s.slice(@pos, 8).unpack("q>").first
+        long = @s.byteslice(@pos, 8).unpack("q>").first
         @pos += 8
         long
       end
 
       def string
         len = int16
-        string = @s.slice(@pos, len)
+        string = @s.byteslice(@pos, len)
         @pos += len
         string
       end
 
       def read(bytes)
-        data = @s.slice(@pos, bytes)
+        data = @s.byteslice(@pos, bytes)
         @pos += bytes
         data
       end
 
       def peek(bytes)
-        @s.slice(@pos, bytes)
+        @s.byteslice(@pos, bytes)
       end
 
       def bytes
