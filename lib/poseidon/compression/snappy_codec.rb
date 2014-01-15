@@ -12,7 +12,7 @@ module Poseidon
 
       def self.decompress(s)
         check!
-        Snappy.inflate(s)
+        Snappy::Reader.new(StringIO.new(s)).read
       end
 
       def self.check!
