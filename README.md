@@ -13,7 +13,7 @@ Poseidon is a Kafka client. Poseidon only supports the 0.8 API and above.
 
 ### Installing a Kafka broker locally
 
-Follow the [instructions](https://cwiki.apache.org/KAFKA/kafka-08-quick-start.html) on the Kafka wiki to build Kafka 0.8 and get a test broker up and running.
+Follow the [instructions](http://kafka.apache.org/documentation.html#quickstart) on the Kafka wiki to build Kafka 0.8 and get a test broker up and running.
 
 ### Sending messages to Kafka
 
