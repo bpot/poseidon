@@ -1,3 +1,7 @@
+# 0.0.5 (Unreleased)
+
+* Fix serious bug where we would send messages to the wrong partition [GH-36]. (Thanks @sclasen and @jorgeortiz85 for tracking this down.)
+
 # 0.0.4
 
 * Don't truncate UTF8 Messages [GH-18]

@@ -2,11 +2,13 @@ require 'spec_helper'
 
 include Protocol
 describe MessageConductor do
-  context "two avialable partitions" do
+  context "two available partitions" do
     before(:each) do
       partitions = [
-        PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
-        PartitionMetadata.new(nil, 1, 2, [2,1], [2,1])
+        # These are intentionally not ordered by partition_id.
+        # [:error, :id, :leader, :replicas, :isr]
+        PartitionMetadata.new(nil, 1, 2, [2,1], [2,1]),
+        PartitionMetadata.new(nil, 0, 1, [1,2], [1,2])
       ]
       topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
@@ -66,6 +68,17 @@ describe MessageConductor do
       it "obeys custom partitioner" do
         expect(@mc.destination("test", "2_hello").first).to eq(0)
         expect(@mc.destination("test", "3_hello").first).to eq(1)
+      end
+    end
+
+    context "partitioner always sends to partition 1" do
+      before(:each) do
+        partitioner = Proc.new { 1 }
+        @mc = MessageConductor.new(@cm, partitioner)
+      end
+
+      it "sends to partition 1 on broker 2" do
+        expect(@mc.destination("test", "2_hello")).to eq([1,2])
       end
     end
 
@@ -136,7 +149,7 @@ describe MessageConductor do
 
     context "keyless message" do
       it "return -1 for broker and partition" do
-        expect(@mc.destination("test").first).to eq(-1)
+        expect(@mc.destination("test")).to eq([-1,-1])
       end
     end
 
