@@ -22,5 +22,4 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency(%q<rspec>)
   gem.add_development_dependency(%q<yard>)
   gem.add_development_dependency(%q<simplecov>)
-  gem.add_development_dependency(%q<daemon_controller>)
 end

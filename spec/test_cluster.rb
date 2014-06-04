@@ -1,5 +1,3 @@
-require 'daemon_controller'
-
 class TestCluster
   attr_reader :broker, :zookeeper
   def initialize
@@ -13,8 +11,12 @@ class TestCluster
   end
 
   def stop
-    @zookeeper.stop
+    # The broker will end up in a state where it ignores SIGTERM
+    # if zookeeper is stopped before the broker.
     @broker.stop
+    sleep 5
+
+    @zookeeper.stop
   end
 end
 
@@ -40,13 +42,11 @@ class JavaRunner
     @kafka_path
   end
 
-  attr_reader :pid
-  def initialize(id, start_cmd, port, properties = {})
+  def initialize(id, start_cmd, stop_cmd, properties = {})
     @id = id
     @properties = properties
-    @pid = nil
     @start_cmd = start_cmd
-    @port = port
+    @stop_cmd = stop_cmd
   end
 
   def start
@@ -55,11 +55,12 @@ class JavaRunner
   end
 
   def stop
-    daemon_controller.stop
+    `#{@stop_cmd}`
   end
 
   def without_process
     stop
+    sleep 5
     begin
       yield
     ensure
@@ -70,21 +71,9 @@ class JavaRunner
 
   private
 
-  def daemon_controller
-    @dc ||= DaemonController.new(
-      :identifier => @id,
-      :start_command => "#{@start_cmd} #{config_path} >>#{log_path} 2>&1 & echo $! > #{pid_path}",
-      :ping_command => [:tcp, '127.0.0.1', @port],
-      :pid_file => pid_path,
-      :log_file => log_path,
-      :start_timeout => 25
-    )
-  end
-
   def run
     FileUtils.mkdir_p(log_dir)
-    FileUtils.mkdir_p(pid_dir)
-    daemon_controller.start
+    `LOG_DIR=#{log_dir} #{@start_cmd} #{config_path}`
   end
 
   def write_properties
@@ -94,18 +83,6 @@ class JavaRunner
         f.puts "#{k}=#{v}"
       end
     end
-  end
-
-  def pid_path
-    "#{pid_dir}/#{@id}.pid"
-  end
-
-  def pid_dir
-    "#{file_path}/pid"
-  end
-
-  def log_path
-    "#{log_dir}/#{@id}.log"
   end
 
   def log_dir
@@ -153,18 +130,14 @@ class BrokerRunner
     @id   = id
     @port = port
     @jr = JavaRunner.new("broker_#{id}", 
-                         "#{POSEIDON_PATH}/spec/bin/kafka-run-class.sh kafka.Kafka", 
-                         port,
+                         "#{ENV['KAFKA_PATH']}/bin/kafka-run-class.sh -daemon -name broker_#{id} kafka.Kafka",
+                         "ps ax | grep -i 'kafka\.Kafka' | grep java | grep broker_#{id} | grep -v grep | awk '{print $1}' | xargs kill -SIGTERM",
                          DEFAULT_PROPERTIES.merge(
                            "broker.id" => id,
                            "port" => port,
                            "log.dir" => "#{POSEIDON_PATH}/tmp/kafka-logs_#{id}",
                            "num.partitions" => partition_count
                          ))
-  end
-
-  def pid
-    @jr.pid
   end
 
   def start
@@ -184,8 +157,8 @@ end
 class ZookeeperRunner
   def initialize
     @jr = JavaRunner.new("zookeeper",
-                         "#{POSEIDON_PATH}/spec/bin/kafka-run-class.sh org.apache.zookeeper.server.quorum.QuorumPeerMain", 
-                         2181,
+                         "#{ENV['KAFKA_PATH']}/bin/zookeeper-server-start.sh -daemon",
+                         "ps ax | grep -i 'zookeeper' | grep -v grep | awk '{print $1}' | xargs kill -SIGTERM",
                          :dataDir => "#{POSEIDON_PATH}/tmp/zookeeper",
                          :clientPort => 2181,
                          :maxClientCnxns => 0)

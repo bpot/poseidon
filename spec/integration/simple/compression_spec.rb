@@ -14,6 +14,7 @@ describe "compression" do
     messages = [MessageToSend.new("test12", "Hello World: #{i}")]
     
     expect(@producer.send_messages(messages)).to eq(true)
+    sleep 1
     messages = @consumer.fetch
     expect(messages.last.value).to eq("Hello World: #{i}")
   end
