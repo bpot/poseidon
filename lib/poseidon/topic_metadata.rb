@@ -26,10 +26,6 @@ module Poseidon
       nil
     end
 
-    def partitions
-      struct.partitions
-    end
-
     def name
       struct.name
     end
@@ -63,12 +59,21 @@ module Poseidon
     end
 
     def partition_leader(partition_id)
-      partition = struct.partitions.find { |p| p.id == partition_id }
+      partition = partitions_by_id[partition_id]
       if partition
         partition.leader
       else
         nil
       end
+    end
+
+    private
+    def partitions_by_id
+      @partitions_by_id ||= Hash[partitions.map { |p| [p.id, p] }]
+    end
+
+    def partitions
+      struct.partitions
     end
   end
 end
