@@ -73,7 +73,7 @@ module Poseidon
       partition_count = topic_metadata.available_partition_count
 
       if partition_count > 0
-        next_partition_counter % partition_count
+        topic_metadata.available_partitions[next_partition_counter % partition_count].id
       else
         NO_PARTITION
       end

@@ -50,12 +50,14 @@ module Poseidon
       @partition_count ||= struct.partitions.count
     end
 
-    def available_partition_leader_ids
-      @available_partition_leader_ids ||= struct.partitions.select(&:leader)
+    def available_partitions
+      @available_partitions ||= struct.partitions.select do |partition|
+        partition.error == 0 && partition.leader != -1
+      end
     end
 
     def available_partition_count
-      @available_partition_count ||= available_partition_leader_ids.count
+      available_partitions.count
     end
 
     def partition_leader(partition_id)

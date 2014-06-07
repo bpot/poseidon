@@ -7,8 +7,8 @@ describe MessageConductor do
       partitions = [
         # These are intentionally not ordered by partition_id.
         # [:error, :id, :leader, :replicas, :isr]
-        PartitionMetadata.new(nil, 1, 2, [2,1], [2,1]),
-        PartitionMetadata.new(nil, 0, 1, [1,2], [1,2])
+        PartitionMetadata.new(0, 1, 2, [2,1], [2,1]),
+        PartitionMetadata.new(0, 0, 1, [1,2], [1,2])
       ]
       topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
@@ -97,8 +97,8 @@ describe MessageConductor do
   context "two partitions, one is unavailable" do
     before(:each) do
       partitions = [
-        Protocol::PartitionMetadata.new(nil, 0, 1, [1,2], [1,2]),
-        Protocol::PartitionMetadata.new(nil, 1, nil, [2,1], [2,1])
+        Protocol::PartitionMetadata.new(0, 0, 1, [1,2], [1,2]),
+        Protocol::PartitionMetadata.new(0, 1, -1, [2,1], [2,1])
       ]
       topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
@@ -133,8 +133,8 @@ describe MessageConductor do
   context "no available partitions" do
     before(:each) do
       partitions = [
-        Protocol::PartitionMetadata.new(nil, 0, nil, [1,2], [1,2]),
-        Protocol::PartitionMetadata.new(nil, 1, nil, [2,1], [2,1])
+        Protocol::PartitionMetadata.new(0, 0, -1, [1,2], [1,2]),
+        Protocol::PartitionMetadata.new(0, 1, -1, [2,1], [2,1])
       ]
       topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
