@@ -38,7 +38,7 @@ describe MessagesToSend do
     context "is successful" do
       before(:each) do
         @mts.messages_for_brokers(nil).each do |mfb|
-          @mts.successfully_sent(mfb)
+          @mts.successfully_sent(mfb.messages)
         end
       end
 

@@ -47,6 +47,7 @@ class JavaRunner
     @properties = properties
     @start_cmd = start_cmd
     @stop_cmd = stop_cmd
+    @stopped = false
   end
 
   def start
@@ -55,7 +56,8 @@ class JavaRunner
   end
 
   def stop
-    `#{@stop_cmd}`
+    `#{@stop_cmd}` if !@stopped
+    @stopped = true
   end
 
   def without_process
@@ -124,9 +126,13 @@ class BrokerRunner
     "kafka.metrics.reporters" => "kafka.metrics.KafkaCSVMetricsReporter",
     "kafka.csv.metrics.dir" => "#{POSEIDON_PATH}/tmp/kafka_metrics",
     "kafka.csv.metrics.reporter.enabled" => "false",
+
+    # Trigger rebalances often to catch edge cases.
+    "auto.leader.rebalance.enable" => "true",
+    "leader.imbalance.check.interval.seconds" => 5
   }
 
-  def initialize(id, port, partition_count = 1)
+  def initialize(id, port, partition_count = 1, replication_factor = 1)
     @id   = id
     @port = port
     @jr = JavaRunner.new("broker_#{id}", 
@@ -136,6 +142,7 @@ class BrokerRunner
                            "broker.id" => id,
                            "port" => port,
                            "log.dir" => "#{POSEIDON_PATH}/tmp/kafka-logs_#{id}",
+                           "default.replication.factor" => replication_factor,
                            "num.partitions" => partition_count
                          ))
   end

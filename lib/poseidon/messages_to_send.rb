@@ -30,8 +30,8 @@ module Poseidon
       MessagesToSendBatch.new(@messages, message_conductor).messages_for_brokers
     end
 
-    def successfully_sent(messages_for_broker)
-      @messages -= messages_for_broker.messages
+    def successfully_sent(messages_sent)
+      @messages -= messages_sent
     end
 
     def all_sent?
