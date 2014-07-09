@@ -93,7 +93,7 @@ module Poseidon
         begin
           @socket = TCPSocket.new(@host, @port)
         rescue SystemCallError
-          raise ConnectionFailedError
+          raise_connection_failed_error
         end
       end
     end
@@ -101,15 +101,15 @@ module Poseidon
     def read_response(response_class)
       r = @socket.read(4)
       if r.nil?
-        raise ConnectionFailedError
+        raise_connection_failed_error
       end
       n = r.unpack("N").first
       s = @socket.read(n)
       buffer = Protocol::ResponseBuffer.new(s)
       response_class.read(buffer)
-    rescue Errno::ECONNRESET
+    rescue Errno::ECONNRESET, SocketError
       @socket = nil
-      raise ConnectionFailedError
+      raise_connection_failed_error
     end
 
     def send_request(request)
@@ -118,7 +118,7 @@ module Poseidon
       @socket.write([buffer.to_s.bytesize].pack("N") + buffer.to_s)
     rescue Errno::EPIPE, Errno::ECONNRESET
       @socket = nil
-      raise ConnectionFailedError
+      raise_connection_failed_error
     end
 
     def request_common(request_type)
@@ -133,6 +133,10 @@ module Poseidon
     def next_correlation_id
       @correlation_id ||= 0
       @correlation_id  += 1
+    end
+
+    def raise_connection_failed_error
+      raise ConnectionFailedError, "Failed to connect to #{@host}:#{@port}"
     end
   end
 end
