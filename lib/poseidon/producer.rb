@@ -125,7 +125,7 @@ module Poseidon
     # @option options [Integer] :required_acks (0)
     #   The number of acks required per request.
     #
-    # @option options [Integer] :request_timeout_ms (1500)
+    # @option options [Integer] :ack_timeout_ms (1500)
     #   How long the producer waits for acks.
     #
     # @api public
