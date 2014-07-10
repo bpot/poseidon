@@ -32,7 +32,7 @@ describe Producer do
     end
 
     it "turns MessagesToSend into Message objects" do
-      @sync_producer.should_receive(:send_messages).with([an_instance_of(Message)])
+      @sync_producer.should_receive(:send_messages).with([an_instance_of(Message)], anything)
 
       m = MessageToSend.new("topic", "value")
       @producer.send_messages([m])

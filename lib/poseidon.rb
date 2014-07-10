@@ -82,6 +82,7 @@ require "poseidon/message_to_send"
 require "poseidon/producer"
 require "poseidon/fetched_message"
 require "poseidon/partition_consumer"
+require "poseidon/produce_result"
 
 # Poseidon!
 require "poseidon/message"

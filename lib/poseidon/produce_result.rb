@@ -19,22 +19,22 @@ module Poseidon
     #
     # @return [Boolean]
     def success?
-      produce_partition_response.error == Poseidon::NO_ERROR_CODE
+      @produce_partition_response.error == Poseidon::Errors::NO_ERROR_CODE
     end
 
     # Did we fail to receive the required number of acks?
     #
     # @return [Boolean]
     def timeout?
-      produce_partition_response.error == Poseidon::Error::RequestTimedOut
+      @produce_partition_response.error_class == Poseidon::Errors::RequestTimedOut
     end
 
     # Return an error if we recieved one.
     #
-    # @return [Poseidon::Error::ProtocolError,Nil]
+    # @return [Poseidon::Errors::ProtocolError,Nil]
     def error
       if !success?
-        produce_partition_response.error_class
+        @produce_partition_response.error_class
       else
         nil
       end
