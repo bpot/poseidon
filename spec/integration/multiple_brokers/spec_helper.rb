@@ -5,7 +5,7 @@ require 'test_cluster'
 class ThreeBrokerCluster
   def initialize
     @zookeeper = ZookeeperRunner.new
-    @brokers = (9092..9094).map { |port| BrokerRunner.new(port - 9092, port, 3) }
+    @brokers = (9092..9094).map { |port| BrokerRunner.new(port - 9092, port, 3, 2) }
   end
 
   def start
@@ -16,6 +16,15 @@ class ThreeBrokerCluster
   def stop
     @zookeeper.stop
     @brokers.each(&:stop)
+  end
+
+  def stop_first_broker
+    @brokers.first.stop
+    sleep 5
+  end
+
+  def start_first_broker
+    @brokers.first.start
   end
 end
 

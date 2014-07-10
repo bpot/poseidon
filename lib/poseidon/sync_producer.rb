@@ -50,8 +50,8 @@ module Poseidon
         end
 
         messages_to_send.messages_for_brokers(@message_conductor).each do |messages_for_broker|
-          if send_to_broker(messages_for_broker)
-            messages_to_send.successfully_sent(messages_for_broker)
+          if sent = send_to_broker(messages_for_broker)
+            messages_to_send.successfully_sent(sent)
           end
         end
 
@@ -109,9 +109,10 @@ module Poseidon
     def send_to_broker(messages_for_broker)
       return false if messages_for_broker.broker_id == -1
       to_send = messages_for_broker.build_protocol_objects(@compression_config)
-      @broker_pool.execute_api_call(messages_for_broker.broker_id, :produce, 
-                                    required_acks, ack_timeout_ms,
-                                    to_send)
+      response = @broker_pool.execute_api_call(messages_for_broker.broker_id, :produce,
+                                              required_acks, ack_timeout_ms,
+                                              to_send)
+      return messages_for_broker.successfully_sent(response)
     rescue Connection::ConnectionFailedError
       false
     end

@@ -4,30 +4,6 @@ require 'zlib'
 require 'thread'
 require 'set'
 
-# Public API
-require "poseidon/message_to_send"
-require "poseidon/producer"
-require "poseidon/fetched_message"
-require "poseidon/partition_consumer"
-
-# Poseidon!
-require "poseidon/message"
-require "poseidon/message_set"
-require "poseidon/topic_metadata"
-require "poseidon/protocol"
-
-require "poseidon/broker_pool"
-require "poseidon/cluster_metadata"
-require "poseidon/compression"
-require "poseidon/connection"
-require "poseidon/message_conductor"
-require "poseidon/messages_for_broker"
-require "poseidon/messages_to_send"
-require "poseidon/messages_to_send_batch"
-require "poseidon/producer_compression_config"
-require "poseidon/sync_producer"
-require "poseidon/version"
-
 # Top level Poseidon namespace
 #
 # @api public
@@ -100,3 +76,27 @@ module Poseidon
     class ProducerShutdownError < StandardError; end
   end
 end
+
+# Public API
+require "poseidon/message_to_send"
+require "poseidon/producer"
+require "poseidon/fetched_message"
+require "poseidon/partition_consumer"
+
+# Poseidon!
+require "poseidon/message"
+require "poseidon/message_set"
+require "poseidon/topic_metadata"
+require "poseidon/protocol"
+
+require "poseidon/broker_pool"
+require "poseidon/cluster_metadata"
+require "poseidon/compression"
+require "poseidon/connection"
+require "poseidon/message_conductor"
+require "poseidon/messages_for_broker"
+require "poseidon/messages_to_send"
+require "poseidon/messages_to_send_batch"
+require "poseidon/producer_compression_config"
+require "poseidon/sync_producer"
+require "poseidon/version"

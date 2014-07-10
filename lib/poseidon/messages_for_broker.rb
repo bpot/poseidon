@@ -35,5 +35,21 @@ module Poseidon
         Protocol::MessagesForTopic.new(topic, messages_for_partitions)
       end
     end
+
+    # We can always retry these errors because they mean none of the kafka brokers persisted the message
+    ALWAYS_RETRYABLE = [Poseidon::Errors::LeaderNotAvailable, Poseidon::Errors::NotLeaderForPartition]
+
+    def successfully_sent(producer_response)
+      failed = []
+      producer_response.topic_response.each do |topic_response|
+        topic_response.partitions.each do |partition|
+          if ALWAYS_RETRYABLE.include?(partition.error_class)
+            failed.push(*@topics[topic_response.topic][partition.partition])
+          end
+        end
+      end
+
+      return @messages - failed
+    end
   end
 end
