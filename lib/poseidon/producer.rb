@@ -147,16 +147,20 @@ module Poseidon
     # @param [Enumerable<MessageToSend>] messages
     #   Messages must have a +topic+ set and may have a +key+ set.
     #
+    # @yieldparam [ProduceResult] callback
+    #   Optional callback which will be triggered _at least once_ for each
+    #   (topic,partition) pair we attempt to send messages to.
+    #
     # @return [Boolean]
     #
     # @api public
-    def send_messages(messages)
+    def send_messages(messages, &callback)
       raise Errors::ProducerShutdownError if @shutdown
       if !messages.respond_to?(:each)
         raise ArgumentError, "messages must respond to #each"
       end
 
-      @producer.send_messages(convert_to_messages_objects(messages))
+      @producer.send_messages(convert_to_messages_objects(messages), callback)
     end
 
     # Closes all open connections to brokers
