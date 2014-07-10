@@ -38,6 +38,6 @@ RSpec.configure do |config|
   end
 
   config.after(:suite) do
-    $tc.stop
+    $tc.stop if $tc
   end
 end

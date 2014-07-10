@@ -151,6 +151,8 @@ module Poseidon
     #   Optional callback which will be triggered _at least once_ for each
     #   (topic,partition) pair we attempt to send messages to.
     #
+    #   Will never be called if required_acks is 0.
+    #
     # @return [Boolean]
     #
     # @api public
@@ -160,7 +162,7 @@ module Poseidon
         raise ArgumentError, "messages must respond to #each"
       end
 
-      @producer.send_messages(convert_to_messages_objects(messages), callback)
+      @producer.send_messages(convert_to_messages_objects(messages), &callback)
     end
 
     # Closes all open connections to brokers

@@ -46,7 +46,9 @@ module Poseidon
           if ALWAYS_RETRYABLE.include?(partition.error_class)
             failed.push(*@topics[topic_response.topic][partition.partition])
           else
-            callback.call(ProduceResult.new(topic_response, partition, @topics[topic_response.topic][partition.partition]))
+            if callback
+              callback.call(ProduceResult.new(topic_response, partition, @topics[topic_response.topic][partition.partition]))
+            end
           end
         end
       end

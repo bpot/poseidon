@@ -112,8 +112,12 @@ module Poseidon
       response = @broker_pool.execute_api_call(messages_for_broker.broker_id, :produce,
                                               required_acks, ack_timeout_ms,
                                               to_send)
-      sent = messages_for_broker.successfully_sent(response, callback)
-      sent
+      if required_acks != 0
+        messages_for_broker.successfully_sent(response, callback)
+      else
+        # Client requested 0 acks, assume all were successful
+        messages_for_broker.messages
+      end
     rescue Connection::ConnectionFailedError
       false
     end
