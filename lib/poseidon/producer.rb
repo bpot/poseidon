@@ -22,6 +22,26 @@ module Poseidon
   #     messages << Poseidon::MessageToSend.new("user_updates_topic", user.update, user.id)
   #     producer.send_messages(messages)
   #
+  # ## Sent Messages Callback
+  #
+  # A single `#send_messages` call may hit many different brokers and as a
+  # result some messages may be succesfully sent and some may fail. If you
+  # need to know which messages were sent successfully and which failed you
+  # must pass callback handler when sending messages. It will be triggered
+  # once for each (topic, partition) pair.
+  #
+  #     producer.send_messages(messages) do |result, error|
+  #       if error.nil? && result.success?
+  #         puts "We sent #{messages.size} to #{result.topic}:#{result.partition}"
+  #       elsif error
+  #         puts "Failed to send #{messages.size} because #{error}"
+  #       else
+  #         puts "Attempted to send #{messages.size} to "
+  #       end
+  #     end
+  #
+  # If we succesfully sent the messages
+  #
   # ## Producer Types
   #
   # There are two types of producers: sync and async. They can be specified
@@ -153,6 +173,9 @@ module Poseidon
     #
     #   Will never be called if required_acks is 0.
     #
+    # @yieldparam [Nil,Exception] error
+    #   Will be set if we were unable to execute the request.
+    #   
     # @return [Boolean]
     #
     # @api public

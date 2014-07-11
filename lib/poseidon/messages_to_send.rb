@@ -34,6 +34,12 @@ module Poseidon
       @messages -= messages_sent
     end
 
+    def remove_for_topic(topic)
+      for_topic = @messages.select { |m| m.topic == topic }
+      @messages -= for_topic
+      for_topic
+    end
+
     def all_sent?
       !@messages.any?
     end

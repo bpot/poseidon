@@ -43,9 +43,21 @@ module Poseidon
       (@max_send_retries+1).times do
         if messages_to_send.needs_metadata? || refresh_interval_elapsed?
           refreshed_metadata = refresh_metadata(messages_to_send.topic_set)
+          # Unable to get any metadata fail all messages
           if !refreshed_metadata
-            # If we can't refresh metadata we have to give up.
+            puts "Failed to refresh metadata"
+            messages_to_send.topic_set.each do |topic|
+              messages = messages_to_send.remove_for_topic(topic)
+              callback.call(ProduceResult.metadata_failure(topic, messages))
+            end
             break
+          end
+
+          # Fail any messages we couldn't find topic metadata for
+          p refreshed_metadata
+          failed_topics.each do |topic|
+            messages = messages_to_send.remove_for_topic(topic)
+            callback.call(ProduceResult.metadata_failure(topic, messages))
           end
         end
 
@@ -103,7 +115,7 @@ module Poseidon
       @broker_pool.update_known_brokers(@cluster_metadata.brokers)
       true
     rescue Errors::UnableToFetchMetadata
-      false
+      return nil
     end
 
     def send_to_broker(messages_for_broker, callback)

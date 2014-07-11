@@ -13,7 +13,8 @@ module Poseidon
 
     # Update what we know about the cluter based on MetadataResponse
     # 
-    # @param [MetadataResponse] topic_metadata_response
+    # @param [TopicMetadataResponse] topic_metadata_response
+    #
     # @return nil
     def update(topic_metadata_response)
       update_brokers(topic_metadata_response.brokers)

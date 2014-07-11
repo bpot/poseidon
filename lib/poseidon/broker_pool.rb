@@ -13,6 +13,7 @@ module Poseidon
       @seed_brokers = seed_brokers
     end
 
+    # @return [TopicMetadataResponse] metadata for the topics
     def fetch_metadata(topics)
       @seed_brokers.each do |broker|
         if metadata = fetch_metadata_from_broker(broker, topics)
@@ -49,6 +50,7 @@ module Poseidon
     end
 
     private
+    # @return [TopicMetadataResponse] metadata for the topics
     def fetch_metadata_from_broker(broker, topics)
       host, port = broker.split(":")
       c = Connection.new(host, port, @client_id)

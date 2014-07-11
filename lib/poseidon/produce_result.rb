@@ -1,10 +1,20 @@
 module Poseidon
   # Represents the result of a produce attempt against a kafka topic.
   class ProduceResult
-    def initialize(produce_topic_response, produce_partition_response, messages)
-      @produce_topic_response = produce_topic_response
-      @produce_partition_response = produce_partition_response
+    def self.metadata_failure(topic, messages)
+      result = new
+      result.messages = messages
+      result.topic = topic
+      result.error = Poseidon::Errors::UnableToFetchMetadata
+      result
+    end
+
+    attr_accessor :messages, :topic, :error
+    def initialize
+      #@produce_topic_response = produce_topic_response
+      #@produce_partition_response = produce_partition_response
       @messages = messages
+      @error = nil
     end
 
     # Was the produce request successful?
@@ -19,7 +29,8 @@ module Poseidon
     #
     # @return [Boolean]
     def success?
-      @produce_partition_response.error == Poseidon::Errors::NO_ERROR_CODE
+      !@error
+    #  @produce_partition_response.error == Poseidon::Errors::NO_ERROR_CODE
     end
 
     # Did we fail to receive the required number of acks?
@@ -29,6 +40,7 @@ module Poseidon
       @produce_partition_response.error_class == Poseidon::Errors::RequestTimedOut
     end
 
+=begin
     # Return an error if we recieved one.
     #
     # @return [Poseidon::Errors::ProtocolError,Nil]
@@ -39,7 +51,9 @@ module Poseidon
         nil
       end
     end
+=end
 
+=begin
     # The messages we the produce request sent.
     #
     # @return [Array<MessageToSend>]
@@ -51,8 +65,10 @@ module Poseidon
     #
     # @return [String]
     def topic
-      @produce_topic_response.topic
+
+      #@produce_topic_response.topic
     end
+=end
 
     # The partition we sent the message to.
     #
