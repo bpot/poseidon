@@ -15,7 +15,7 @@ describe "handling failures" do
         @p = Producer.new(["localhost:1092","localhost:1093","localhost:1094"], "producer")
       end
 
-      it "triggers callback faiures for both topics" do
+      it "triggers callback failures for both topics" do
         callback_triggered = []
         @p.send_messages(@messages_to_send) do |result|
           callback_triggered << result.topic
@@ -31,7 +31,7 @@ describe "handling failures" do
 
     describe "only one of two topics exists" do
       before(:each) do
-        @p = Producer.new(["localhost:9092","localhost:9093","localhost:9094"], "producer")
+        @p = Producer.new(["localhost:9092","localhost:9093","localhost:9094"], "producer", :max_send_retries => 0)
 
         c = Connection.new("localhost", 9092, "metadata_fetcher")
         md = c.topic_metadata(["topic1"])
@@ -40,17 +40,23 @@ describe "handling failures" do
         pp md
       end
 
+      # XXX sister one where this succeeds because we have retries!
+      # XXX sister one where required_acks > 1
       it "triggers one callback failure and one success" do
         success_triggered = 0
         failure_triggered = 0
 
         @p.send_messages(@messages_to_send) do |result|
+          p "CALLBACK YO"
+
           if result.success?
+            p "GOT SUCCESS"
             success_triggered += 1 
             expect(result.messages.size).to eq(1)
             expect(result.error).to eq(nil)
             expect(result.topic).to eq("topic1")
           else
+            p "GOT FAILURE"
             failure_triggered += 1 
             expect(result.messages.size).to eq(1)
             # XXX should this be unknown topic?!
