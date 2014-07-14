@@ -34,8 +34,8 @@ module Poseidon
       @messages -= messages_sent
     end
 
-    def all_sent?
-      !@messages.any?
+    def pending_messages?
+      @messages.any?
     end
 
     private

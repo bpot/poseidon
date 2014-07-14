@@ -22,6 +22,9 @@ end
 
 POSEIDON_PATH = File.absolute_path(File.dirname(__FILE__) + "/../")
 
+require 'logger'
+SPEC_LOGGER = Logger.new(File.join(POSEIDON_PATH, "log", "spec.log"))
+
 require 'simplecov'
 SimpleCov.start
 

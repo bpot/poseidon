@@ -27,7 +27,9 @@ describe "unavailable broker scenarios:" do
         expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
 
         $tc.broker.without_process do
-          expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(false)
+          expect {
+            @p.send_messages([MessageToSend.new("test", "hello")])
+          }.to raise_error(Poseidon::Errors::UnableToFetchMetadata)
         end
       end
     end
@@ -37,7 +39,9 @@ describe "unavailable broker scenarios:" do
         expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
 
         $tc.broker.without_process do
-          expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(false)
+          expect {
+            @p.send_messages([MessageToSend.new("test", "hello")])
+          }.to raise_error(Poseidon::Errors::UnableToFetchMetadata)
         end
 
         expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
@@ -56,21 +60,10 @@ describe "unavailable broker scenarios:" do
 
         $tc.broker.without_process do
           @p.send_messages([MessageToSend.new("test", "hello_b")])
-          expect(@p.send_messages([MessageToSend.new("test", "hello_b")])).to eq(false)
+          expect {
+            @p.send_messages([MessageToSend.new("test", "hello_b")])
+          }.to raise_error(Poseidon::Errors::UnableToFetchMetadata)
         end
-      end
-    end
-
-    context "broker stops running but starts again" do
-      it "sends succesfully once broker returns" do
-        expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
-
-        $tc.broker.without_process do
-          @p.send_messages([MessageToSend.new("test", "hello")])
-          expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(false)
-        end
-
-        expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
       end
     end
   end

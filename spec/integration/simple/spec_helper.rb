@@ -3,7 +3,7 @@ require 'spec_helper'
 require 'test_cluster'
 
 RSpec.configure do |config|
-  config.before(:suite) do
+  config.before(:each) do
     JavaRunner.remove_tmp
     JavaRunner.set_kafka_path!
     $tc = TestCluster.new
@@ -11,7 +11,7 @@ RSpec.configure do |config|
     sleep 5
   end
 
-  config.after(:suite) do
+  config.after(:each) do
     $tc.stop
   end
 end

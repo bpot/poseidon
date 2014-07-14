@@ -40,22 +40,20 @@ module Poseidon
 
       messages_to_send = MessagesToSend.new(messages, @cluster_metadata)
 
-      (@max_send_retries+1).times do
-        if messages_to_send.needs_metadata? || refresh_interval_elapsed?
-          refreshed_metadata = refresh_metadata(messages_to_send.topic_set)
-          if !refreshed_metadata
-            # If we can't refresh metadata we have to give up.
-            break
-          end
-        end
+      if refresh_interval_elapsed?
+        refresh_metadata(messages_to_send.topic_set)
+      end
 
+      ensure_metadata_available_for_topics(messages_to_send)
+
+      (@max_send_retries+1).times do
         messages_to_send.messages_for_brokers(@message_conductor).each do |messages_for_broker|
           if sent = send_to_broker(messages_for_broker)
             messages_to_send.successfully_sent(sent)
           end
         end
 
-        if messages_to_send.all_sent? || @max_send_retries == 0
+        if !messages_to_send.pending_messages? || @max_send_retries == 0
           break
         else
           Kernel.sleep retry_backoff_ms / 1000.0
@@ -63,7 +61,11 @@ module Poseidon
         end
       end
 
-      messages_to_send.all_sent?
+      if messages_to_send.pending_messages?
+        raise "Failed to send all messages: #{messages_to_send.messages} remaining"
+      else
+        true
+      end
     end
 
     def shutdown
@@ -71,6 +73,22 @@ module Poseidon
     end
     
     private
+
+    def ensure_metadata_available_for_topics(messages_to_send)
+      return if !messages_to_send.needs_metadata?
+
+      refresh_metadata(messages_to_send.topic_set)
+      return if !messages_to_send.needs_metadata?
+
+      2.times do
+        sleep 5
+
+        refresh_metadata(messages_to_send.topic_set)
+        return if !messages_to_send.needs_metadata?
+      end
+      raise Errors::UnableToFetchMetadata
+    end
+
     def handle_options(options)
       @ack_timeout_ms    = handle_option(options, :ack_timeout_ms)
       @retry_backoff_ms  = handle_option(options, :retry_backoff_ms)
@@ -95,15 +113,19 @@ module Poseidon
     end
 
     def refresh_interval_elapsed?
-      (Time.now - @cluster_metadata.last_refreshed_at) > metadata_refresh_interval_ms
+      @cluster_metadata.last_refreshed_at.nil? ||
+        (Time.now - @cluster_metadata.last_refreshed_at) > metadata_refresh_interval_ms
     end
 
     def refresh_metadata(topics)
-      @cluster_metadata.update(@broker_pool.fetch_metadata(topics))
+      topics_to_refresh = topics.dup
+
+      @cluster_metadata.topics.each do |topic|
+        topics_to_refresh.add(topic)
+      end
+
+      @cluster_metadata.update(@broker_pool.fetch_metadata(topics_to_refresh))
       @broker_pool.update_known_brokers(@cluster_metadata.brokers)
-      true
-    rescue Errors::UnableToFetchMetadata
-      false
     end
 
     def send_to_broker(messages_for_broker)
@@ -112,7 +134,11 @@ module Poseidon
       response = @broker_pool.execute_api_call(messages_for_broker.broker_id, :produce,
                                               required_acks, ack_timeout_ms,
                                               to_send)
-      return messages_for_broker.successfully_sent(response)
+      if required_acks == 0
+        messages_for_broker.messages
+      else
+        messages_for_broker.successfully_sent(response)
+      end
     rescue Connection::ConnectionFailedError
       false
     end

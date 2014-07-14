@@ -10,10 +10,10 @@ describe MessageConductor do
         PartitionMetadata.new(0, 1, 2, [2,1], [2,1]),
         PartitionMetadata.new(0, 0, 1, [1,2], [1,2])
       ]
-      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(0, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
-      @mr = MetadataResponse.new(nil, brokers, topics)
+      @mr = MetadataResponse.new(0, brokers, topics)
 
       @cm = ClusterMetadata.new
       @cm.update(@mr)
@@ -100,10 +100,10 @@ describe MessageConductor do
         Protocol::PartitionMetadata.new(0, 0, 1, [1,2], [1,2]),
         Protocol::PartitionMetadata.new(0, 1, -1, [2,1], [2,1])
       ]
-      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(0, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
-      @mr = MetadataResponse.new(nil, brokers, topics)
+      @mr = MetadataResponse.new(0, brokers, topics)
 
       @cm = ClusterMetadata.new
       @cm.update(@mr)
@@ -136,10 +136,10 @@ describe MessageConductor do
         Protocol::PartitionMetadata.new(0, 0, -1, [1,2], [1,2]),
         Protocol::PartitionMetadata.new(0, 1, -1, [2,1], [2,1])
       ]
-      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(0, "test", partitions))]
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 
-      @mr = MetadataResponse.new(nil, brokers, topics)
+      @mr = MetadataResponse.new(0, brokers, topics)
 
       @cm = ClusterMetadata.new
       @cm.update(@mr)

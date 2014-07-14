@@ -43,7 +43,7 @@ describe MessagesToSend do
       end
 
       it "successfully sends all" do
-        expect(@mts.all_sent?).to eq(true)
+        expect(@mts.pending_messages?).to eq(false)
       end
     end
 
@@ -56,7 +56,7 @@ describe MessagesToSend do
       it "does not send all" do
         @mts.messages_for_brokers(nil).each do |mfb|
         end
-        expect(@mts.all_sent?).to eq(false)
+        expect(@mts.pending_messages?).to eq(true)
       end
     end
   end

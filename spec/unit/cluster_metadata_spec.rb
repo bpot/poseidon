@@ -5,10 +5,10 @@ describe ClusterMetadata do
   describe "populated" do
     before(:each) do
       partitions = [
-        PartitionMetadata.new(nil, 1, 1, [1,2], [1,2]),
-        PartitionMetadata.new(nil, 2, 2, [2,1], [2,1])
+        PartitionMetadata.new(0, 1, 1, [1,2], [1,2]),
+        PartitionMetadata.new(0, 2, 2, [2,1], [2,1])
       ]
-      topics = [TopicMetadata.new(TopicMetadataStruct.new(nil, "test", partitions))]
+      topics = [TopicMetadata.new(TopicMetadataStruct.new(0, "test", partitions))]
 
       brokers = [Broker.new(1, "host1", 1), Broker.new(2, "host2", 2)]
 

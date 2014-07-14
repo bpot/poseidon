@@ -34,6 +34,10 @@ module Poseidon
       eql?(o)
     end
 
+    def exists?
+      struct.error == 0
+    end
+
     def eql?(o)
       struct.eql?(o.struct)
     end
