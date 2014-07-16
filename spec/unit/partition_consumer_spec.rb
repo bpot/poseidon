@@ -14,13 +14,13 @@ describe PartitionConsumer do
   describe "creation" do
     context "when passed unknown options" do
       it "raises an ArgumentError" do
-        expect { PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0,:earliest_offset, :unknown => true) }.to raise_error(ArgumentError)
+        expect { PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, :earliest_offset, :unknown => true) }.to raise_error(ArgumentError)
       end
     end
 
     context "when passed an unknown offset" do
       it "raises an ArgumentError" do
-        expect { PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0,:coolest_offset) }.to raise_error(ArgumentError)
+        expect { PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, :coolest_offset) }.to raise_error(ArgumentError)
       end
     end
   end
@@ -97,13 +97,13 @@ describe PartitionConsumer do
     end
 
     it "uses object defaults" do
-      @connection.should_receive(:fetch).with(10_000, 0, anything)
+      @connection.should_receive(:fetch).with(10_000, 1, anything)
       @pc.fetch
     end
 
     context "when options are passed" do
       it "overrides object defaults" do
-        @connection.should_receive(:fetch).with(20_000, 0, anything)
+        @connection.should_receive(:fetch).with(20_000, 1, anything)
         @pc = PartitionConsumer.new("test_client", "localhost", 9092, "test_topic", 0, :earliest_offset, :max_wait_ms => 20_000)
 
         @pc.fetch

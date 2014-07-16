@@ -54,6 +54,23 @@ describe "simple producer and consumer" do
       expect(messages.empty?).to eq(true)
     end
 
+    it "waits for messages" do
+      # Create topic
+      @c = Connection.new("localhost", 9092, "metadata_fetcher")
+      @c.topic_metadata(["simple_wait_test"])
+
+      sleep 5
+      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
+                                        "simple_wait_test", 0, :earliest_offset,
+                                        :max_wait_ms => 2500)
+
+      require 'benchmark'
+      n = Benchmark.realtime do
+        @consumer.fetch
+      end
+      expect(n).to be_within(0.25).of(2.5)
+    end
+
     # Not sure what's going on here, will revisit.
 =begin
     it "fetches larger messages with a larger max bytes size" do

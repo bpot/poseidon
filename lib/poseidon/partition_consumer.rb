@@ -48,11 +48,14 @@ module Poseidon
     #
     # @option options [:max_bytes] Maximum number of bytes to fetch
     #   Default: 1048576 (1MB)
+    #
     # @option options [:max_wait_ms] 
     #   How long to block until the server sends us data.
+    #   NOTE: This is only enforced if min_bytes is > 0.
     #   Default: 100 (100ms)
+    #
     # @option options [:min_bytes] Smallest amount of data the server should send us.
-    #   Default: 0 (Send us data as soon as it is ready)
+    #   Default: 1 (Send us data as soon as it is ready)
     #
     # @api public
     def initialize(client_id, host, port, topic, partition, offset, options = {})
@@ -75,14 +78,16 @@ module Poseidon
     #
     # @option options [:max_bytes]
     #   Maximum number of bytes to fetch
+    #
     # @option options [:max_wait_ms]
     #   How long to block until the server sends us data.
+    #
     # @option options [:min_bytes] 
     #   Smallest amount of data the server should send us.
     #
     # @api public
     def fetch(options = {})
-      fetch_max_wait = options.delete(:max_wait) || max_wait_ms
+      fetch_max_wait = options.delete(:max_wait_ms) || max_wait_ms
       fetch_max_bytes = options.delete(:max_bytes) || max_bytes
       fetch_min_bytes = options.delete(:min_bytes) || min_bytes
 
@@ -96,7 +101,8 @@ module Poseidon
       partition_response = topic_response.partition_fetch_responses.first
 
       unless partition_response.error == Errors::NO_ERROR_CODE
-        if @offset < 0 && Errors::ERROR_CODES[partition_response.error] == Errors::OffsetOutOfRange
+        if @offset < 0 &&
+          Errors::ERROR_CODES[partition_response.error] == Errors::OffsetOutOfRange
           @offset = :earliest_offset
           return fetch(options)
         end
@@ -125,7 +131,7 @@ module Poseidon
     private
     def handle_options(options)
       @max_bytes    = options.delete(:max_bytes) || 1024*1024
-      @min_bytes    = options.delete(:min_bytes) || 0
+      @min_bytes    = options.delete(:min_bytes) || 1
       @max_wait_ms  = options.delete(:max_wait_ms) || 10_000
       if options.keys.any?
         raise ArgumentError, "Unknown options: #{options.keys.inspect}"
