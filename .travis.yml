@@ -1,4 +1,10 @@
 laguage: ruby
+
+before_install:
+  - spec/setup_kafka.sh
+
+script: ./script/cibuild
+
 rvm:
   - 1.9.3
   - 2.0.0
