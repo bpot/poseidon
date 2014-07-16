@@ -10,7 +10,7 @@ describe "round robin sending" do
 
       test_topic = md.topics.first
 
-      consumers = test_topic.partitions.map do |partition|
+      consumers = test_topic.send(:partitions).map do |partition|
         leader_id = partition.leader
         broker = md.brokers.find { |b| b.id == leader_id }
         PartitionConsumer.new("test_consumer_#{partition.id}", broker.host,
@@ -22,13 +22,13 @@ describe "round robin sending" do
         c.fetch
       end
 
-
       @p = Producer.new(["localhost:9092","localhost:9093","localhost:9094"], "test",
                        :required_acks => 1)
-
       24.times do
         @p.send_messages([MessageToSend.new("test", "hello")])
       end
+
+      sleep 5
 
       consumers.each do |c|
         messages = c.fetch

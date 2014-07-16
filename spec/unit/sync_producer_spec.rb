@@ -40,8 +40,9 @@ describe SyncProducer do
 
       it "fetches metadata" do
         @broker_pool.should_recieve(:fetch_metadata)
+
         @sp = SyncProducer.new("test_client", [])
-        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue Errors::UnableToFetchMetadata
       end
     end
 
@@ -54,51 +55,53 @@ describe SyncProducer do
         @broker_pool.should_recieve(:execute_api_call, :producer, anything, anything, anything)
 
         @sp = SyncProducer.new("test_client", [])
-        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
     end
 
     context "always fails" do
       before(:each) do
-        @mbts.stub!(:all_sent?).and_return(false)
+        @mbts.stub!(:pending_messages?).and_return(true)
         @sp = SyncProducer.new("test_client", [])
       end
 
       it "retries the correct number of times" do
         @mbts.should_receive(:messages_for_brokers).exactly(4).times
-        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
 
       it "sleeps the correct amount between retries" do
         Kernel.should_receive(:sleep).with(0.1).exactly(4).times
-        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
 
       it "refreshes metadata between retries" do
         @cluster_metadata.should_receive(:update).exactly(4).times
-        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
 
-      it "returns false" do
-        expect(@sp.send_messages([Message.new(:topic => "topic", :value => "value")])).to eq(false)
+      it "raises an exception" do
+        expect {
+          @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        }.to raise_error
       end
     end
 
     context "no retries" do
       before(:each) do
-        @mbts.stub!(:all_sent?).and_return(false)
+        @mbts.stub!(:pending_messages?).and_return(true)
         @sp = SyncProducer.new("test_client", [], max_send_retries: 0)
       end
 
       it "does not call sleep" do
         Kernel.should_receive(:sleep).exactly(0).times
-        @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
+        @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue Errors::UnableToFetchMetadata
       end
     end
 
     context "succeeds on first attempt" do
       before(:each) do
-        @mbts.stub!(:all_sent?).and_return(true)
+        @mbts.stub!(:pending_messages?).and_return(false)
         @sp = SyncProducer.new("test_client", [])
       end
 
@@ -119,7 +122,7 @@ describe SyncProducer do
 
     context "succeeds on second attempt" do
       before(:each) do
-        @mbts.stub!(:all_sent?).and_return(false, true)
+        @mbts.stub!(:pending_messages?).and_return(true, false)
         @sp = SyncProducer.new("test_client", [])
       end
 

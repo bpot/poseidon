@@ -1,7 +1,7 @@
 require 'integration/simple/spec_helper'
 
 describe "truncated messages" do
-  before(:all) do
+  before(:each) do
     @s1 = "a" * 335
     @s2 = "b" * 338
 

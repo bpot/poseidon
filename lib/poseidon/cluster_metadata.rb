@@ -57,10 +57,16 @@ module Poseidon
       end
     end
 
+    def topics
+      @topic_metadata.keys
+    end
+
     private
     def update_topics(topics)
       topics.each do |topic|
-        @topic_metadata[topic.name] = topic
+        if topic.exists?
+          @topic_metadata[topic.name] = topic
+        end
       end
     end
 

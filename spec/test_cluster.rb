@@ -42,11 +42,12 @@ class JavaRunner
     @kafka_path
   end
 
-  def initialize(id, start_cmd, stop_cmd, properties = {})
+  def initialize(id, start_cmd, pid_cmd, kill_signal, properties = {})
     @id = id
     @properties = properties
     @start_cmd = start_cmd
-    @stop_cmd = stop_cmd
+    @pid_cmd = pid_cmd
+    @kill_signal = kill_signal
     @stopped = false
   end
 
@@ -56,8 +57,26 @@ class JavaRunner
   end
 
   def stop
-    `#{@stop_cmd}` if !@stopped
-    @stopped = true
+    if !@stopped
+      killed_at = Time.now
+      loop do
+        if (pid = `#{@pid_cmd}`.to_i) == 0
+          SPEC_LOGGER.info "Killed."
+          break
+        end
+
+        if Time.now - killed_at > 30
+          raise "Failed to kill process!"
+        end
+
+        SPEC_LOGGER.info "Sending #{@kill_signal} To #{pid}"
+        SPEC_LOGGER.info "(#{@start_cmd})"
+        `kill -#{@kill_signal} #{pid}`
+
+        sleep 5
+      end
+      @stopped = true
+    end
   end
 
   def without_process
@@ -76,6 +95,7 @@ class JavaRunner
   def run
     FileUtils.mkdir_p(log_dir)
     `LOG_DIR=#{log_dir} #{@start_cmd} #{config_path}`
+    @stopped = false
   end
 
   def write_properties
@@ -119,32 +139,34 @@ class BrokerRunner
     "log.flush.interval.ms" => 1000,
     "log.retention.hours" => 168,
     "log.segment.bytes" => 536870912,
-    "log.cleanup.interval.mins" => 1,
+    #"log.cleanup.interval.mins" => 1,
     "zookeeper.connect" => "localhost:2181",
     "zookeeper.connection.timeout.ms" => 1000000,
-    "kafka.metrics.polling.interval.secs" => 5,
-    "kafka.metrics.reporters" => "kafka.metrics.KafkaCSVMetricsReporter",
-    "kafka.csv.metrics.dir" => "#{POSEIDON_PATH}/tmp/kafka_metrics",
-    "kafka.csv.metrics.reporter.enabled" => "false",
+    #"kafka.metrics.polling.interval.secs" => 5,
+    #"kafka.metrics.reporters" => "kafka.metrics.KafkaCSVMetricsReporter",
+    #"kafka.csv.metrics.dir" => "#{POSEIDON_PATH}/tmp/kafka_metrics",
+    #"kafka.csv.metrics.reporter.enabled" => "false",
+    "auto.create.topics.enable" => "true",
 
     # Trigger rebalances often to catch edge cases.
     "auto.leader.rebalance.enable" => "true",
     "leader.imbalance.check.interval.seconds" => 5
   }
 
-  def initialize(id, port, partition_count = 1, replication_factor = 1)
+  def initialize(id, port, partition_count = 1, replication_factor = 1, properties = {})
     @id   = id
     @port = port
     @jr = JavaRunner.new("broker_#{id}", 
                          "#{ENV['KAFKA_PATH']}/bin/kafka-run-class.sh -daemon -name broker_#{id} kafka.Kafka",
-                         "ps ax | grep -i 'kafka\.Kafka' | grep java | grep broker_#{id} | grep -v grep | awk '{print $1}' | xargs kill -SIGTERM",
+                         "ps ax | grep -i 'kafka\.Kafka' | grep java | grep broker_#{id} | grep -v grep | awk '{print $1}'",
+                         "SIGTERM",
                          DEFAULT_PROPERTIES.merge(
                            "broker.id" => id,
                            "port" => port,
                            "log.dir" => "#{POSEIDON_PATH}/tmp/kafka-logs_#{id}",
                            "default.replication.factor" => replication_factor,
                            "num.partitions" => partition_count
-                         ))
+                         ).merge(properties))
   end
 
   def start
@@ -165,7 +187,8 @@ class ZookeeperRunner
   def initialize
     @jr = JavaRunner.new("zookeeper",
                          "#{ENV['KAFKA_PATH']}/bin/zookeeper-server-start.sh -daemon",
-                         "ps ax | grep -i 'zookeeper' | grep -v grep | awk '{print $1}' | xargs kill -SIGTERM",
+                         "ps ax | grep -i 'zookeeper' | grep -v grep | awk '{print $1}'",
+                         "SIGKILL",
                          :dataDir => "#{POSEIDON_PATH}/tmp/zookeeper",
                          :clientPort => 2181,
                          :maxClientCnxns => 0)
