@@ -128,6 +128,16 @@ module Poseidon
       @offset
     end
 
+    # Close the connection to the kafka broker
+    #
+    # @return [Nil]
+    #
+    # @api public
+    def close
+      @connection.close
+      nil
+    end
+
     private
     def handle_options(options)
       @max_bytes    = options.delete(:max_bytes) || 1024*1024
