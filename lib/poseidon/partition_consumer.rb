@@ -96,7 +96,9 @@ module Poseidon
       end
 
       topic_fetches = build_topic_fetch_request(fetch_max_bytes)
+      p "PRE FETCH: #{Time.now.to_i}"
       fetch_response = @connection.fetch(fetch_max_wait, fetch_min_bytes, topic_fetches)
+      p "POST FETCH: #{Time.now.to_i}"
       topic_response = fetch_response.topic_fetch_responses.first 
       partition_response = topic_response.partition_fetch_responses.first
 
