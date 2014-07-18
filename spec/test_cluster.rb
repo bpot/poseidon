@@ -94,7 +94,7 @@ class JavaRunner
 
   def run
     FileUtils.mkdir_p(log_dir)
-    `LOG_DIR=#{log_dir} #{@start_cmd} #{config_path}`
+    system( { "LOG_DIR" => log_dir }, "#{@start_cmd} #{config_path}")
     @stopped = false
   end
 
