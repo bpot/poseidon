@@ -3,6 +3,8 @@ laguage: ruby
 before_install:
   - spec/setup_kafka.sh
 
+env: KAFKA_PATH=./spec/kafka/
+
 script: ./script/cibuild
 
 rvm:
