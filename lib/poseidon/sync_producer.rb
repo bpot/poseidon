@@ -77,12 +77,14 @@ module Poseidon
     def ensure_metadata_available_for_topics(messages_to_send)
       return if !messages_to_send.needs_metadata?
 
+      Poseidon.logger.debug { "Fetching metadata for #{messages_to_send.topic_set}. (Attempt 1)" }
       refresh_metadata(messages_to_send.topic_set)
       return if !messages_to_send.needs_metadata?
 
-      2.times do
+      2.times do |n|
         sleep 5
 
+        Poseidon.logger.debug { "Fetching metadata for #{messages_to_send.topic_set}. (Attempt #{n+2})" }
         refresh_metadata(messages_to_send.topic_set)
         return if !messages_to_send.needs_metadata?
       end
@@ -131,6 +133,8 @@ module Poseidon
     def send_to_broker(messages_for_broker)
       return false if messages_for_broker.broker_id == -1
       to_send = messages_for_broker.build_protocol_objects(@compression_config)
+
+      Poseidon.logger.debug { "Sending messages to broker #{messages_for_broker.broker_id}" }
       response = @broker_pool.execute_api_call(messages_for_broker.broker_id, :produce,
                                               required_acks, ack_timeout_ms,
                                               to_send)

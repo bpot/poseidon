@@ -75,6 +75,22 @@ module Poseidon
     # object that has been #shutdown
     class ProducerShutdownError < StandardError; end
   end
+
+  def self.logger
+    @logger ||= null_logger
+  end
+
+  def self.logger=(logger)
+    @logger = logger
+  end
+
+  private
+  def self.null_logger
+    devnull = RUBY_PLATFORM =~ /w32/ ? 'nul' : '/dev/null'
+    l = Logger.new(devnull)
+    l.level = Logger::INFO
+    l
+  end
 end
 
 # Public API

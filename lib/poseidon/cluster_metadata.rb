@@ -61,6 +61,16 @@ module Poseidon
       @topic_metadata.keys
     end
 
+    def to_s
+      out = ""
+      @topic_metadata.each do |topic, metadata|
+        out << "Topic: #{topic}"
+        out << "-------------------------"
+        out << metadata.to_s
+      end
+      out
+    end
+
     private
     def update_topics(topics)
       topics.each do |topic|
