@@ -73,6 +73,10 @@ module Poseidon
       end
     end
 
+    def to_s
+      struct.partitions.map { |p| p.inspect }.join("\n")
+    end
+
     private
     def partitions_by_id
       @partitions_by_id ||= Hash[partitions.map { |p| [p.id, p] }]
