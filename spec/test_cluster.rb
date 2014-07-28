@@ -60,12 +60,13 @@ class JavaRunner
     if !@stopped
       killed_at = Time.now
       loop do
+        puts `ps ax | grep java`
         if (pid = `#{@pid_cmd}`.to_i) == 0
           SPEC_LOGGER.info "Killed."
           break
         end
 
-        if Time.now - killed_at > 30
+        if Time.now - killed_at > 60
           raise "Failed to kill process!"
         end
 
