@@ -14,6 +14,8 @@ module Poseidon
 
     attr_reader :offset
 
+    attr_reader :topic
+
     # Returns a consumer pointing at the lead broker for the partition.
     #
     # Eventually this will be replaced by higher level consumer functionality,
@@ -195,14 +197,14 @@ module Poseidon
         protocol_offset,
         max_number_of_offsets = 1)
         
-      [Protocol::TopicOffsetRequest.new(@topic, [partition_offset_request])]
+      [Protocol::TopicOffsetRequest.new(topic, [partition_offset_request])]
     end
 
     def build_topic_fetch_request(max_bytes)
       partition_fetches = [Protocol::PartitionFetch.new(@partition,
                                                         next_offset,
                                                         max_bytes)]
-      topic_fetches = [Protocol::TopicFetch.new(@topic, partition_fetches)]
+      topic_fetches = [Protocol::TopicFetch.new(topic, partition_fetches)]
     end
   end
 end
