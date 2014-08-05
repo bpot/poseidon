@@ -28,6 +28,8 @@ module Poseidon
       cluster_metadata.update(broker_pool.fetch_metadata([topic]))
 
       broker = cluster_metadata.lead_broker_for_partition(topic, partition)
+      broker_pool.shutdown
+
       new(client_id, broker.host, broker.port, topic, partition, offset, options)
     end
 

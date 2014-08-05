@@ -18,8 +18,8 @@ describe BrokerPool do
     context "2 seed brokers" do
       before(:each) do
         @broker_pool = BrokerPool.new("test_client", ["first:9092","second:9092"])
-        @broker_1 = double('Poseidon::Connection_1', :topic_metadata => nil)
-        @broker_2 = double('Poseidon::Connection_2', :topic_metadata => double('topic_metadata').as_null_object)
+        @broker_1 = double('Poseidon::Connection_1', :topic_metadata => nil, :close => nil)
+        @broker_2 = double('Poseidon::Connection_2', :topic_metadata => double('topic_metadata').as_null_object, :close => nil)
         Connection.stub!(:new).and_return(@broker_1, @broker_2)
       end
 
@@ -29,6 +29,13 @@ describe BrokerPool do
 
           @broker_pool.fetch_metadata(Set.new)
         end
+      end
+
+      it "cleans up its connections" do
+        @broker_1.should_receive(:close)
+        @broker_2.should_receive(:close)
+
+        @broker_pool.fetch_metadata(Set.new)
       end
     end
   end
