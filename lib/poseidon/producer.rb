@@ -163,10 +163,12 @@ module Poseidon
     end
 
     # Closes all open connections to brokers
-    def shutdown
+    def close
       @shutdown = true
-      @producer.shutdown
+      @producer.close
     end
+
+    alias_method :shutdown, :close
 
     private
     def validate_options(options)

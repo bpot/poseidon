@@ -15,7 +15,7 @@ describe Producer do
 
   it "raises ProducerShutdown if we try to send to a shutdown producer" do
     p = Producer.new(["host:port"],"client_id")
-    p.shutdown
+    p.close
     expect { p.send_messages([]) }.to raise_error(Errors::ProducerShutdownError)
   end
 

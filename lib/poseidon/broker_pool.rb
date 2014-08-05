@@ -11,7 +11,7 @@ module Poseidon
 
       yield broker_pool
     ensure
-      broker_pool.shutdown
+      broker_pool.close
     end
 
     # @param [String] client_id
@@ -54,10 +54,12 @@ module Poseidon
     end
 
     # Closes all open connections to brokers
-    def shutdown
+    def close
       @brokers.values(&:close)
       @brokers = {}
     end
+
+    alias_method :shutdown, :close
 
     private
     def fetch_metadata_from_broker(broker, topics)

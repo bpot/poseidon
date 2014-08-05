@@ -17,7 +17,7 @@ describe "simple producer and consumer" do
       messages = @consumer.fetch
       expect(messages.last.value).to eq("Hello World")
 
-      @producer.shutdown
+      @producer.close
     end
 
     it "fetches only messages since the last offset" do
