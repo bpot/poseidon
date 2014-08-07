@@ -34,20 +34,20 @@ describe BrokerPool do
         @broker_pool = BrokerPool.new("test_client", ["first:9092","second:9092"], 10_000)
         @broker_1 = double('Poseidon::Connection_1', :topic_metadata => nil, :close => nil)
         @broker_2 = double('Poseidon::Connection_2', :topic_metadata => double('topic_metadata').as_null_object, :close => nil)
-        Connection.stub!(:new).and_return(@broker_1, @broker_2)
+        allow(Connection).to receive(:new).and_return(@broker_1, @broker_2)
       end
 
       context ", first doesn't have metadata" do
         it "asks the second" do
-          @broker_2.should_receive(:topic_metadata)
+          expect(@broker_2).to receive(:topic_metadata)
 
           @broker_pool.fetch_metadata(Set.new)
         end
       end
 
       it "cleans up its connections" do
-        @broker_1.should_receive(:close)
-        @broker_2.should_receive(:close)
+        expect(@broker_1).to receive(:close)
+        expect(@broker_2).to receive(:close)
 
         @broker_pool.fetch_metadata(Set.new)
       end
@@ -63,27 +63,27 @@ describe BrokerPool do
     describe "when executing a call" do
 
       it "creates a connection for the correct broker" do
-        c = stub('conn').as_null_object
+        c = double('conn').as_null_object
         expected_args = ["localhost", 9092, "test_client", 10_000]
 
-        Connection.should_receive(:new).with(*expected_args).and_return(c)
+        expect(Connection).to receive(:new).with(*expected_args).and_return(c)
         @broker_pool.execute_api_call(0, :produce)
       end
 
       it "it does so on the correct broker" do
-        c = stub('conn').as_null_object
-        Connection.stub(:new).and_return(c)
+        c = double('conn').as_null_object
+        allow(Connection).to receive(:new).and_return(c)
 
-        c.should_receive(:produce)
+        expect(c).to receive(:produce)
         @broker_pool.execute_api_call(0, :produce)
       end
     end
 
     describe "when executing two calls" do
       it "reuses the connection" do
-        c = stub('conn').as_null_object
+        c = double('conn').as_null_object
 
-        Connection.should_receive(:new).once.and_return(c)
+        expect(Connection).to receive(:new).once.and_return(c)
         @broker_pool.execute_api_call(0, :produce)
         @broker_pool.execute_api_call(0, :produce)
       end

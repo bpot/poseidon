@@ -26,13 +26,13 @@ describe Producer do
   describe "sending messages" do
     before(:each) do
       @sync_producer = double('sync_producer').as_null_object
-      SyncProducer.stub!(:new).and_return(@sync_producer)
+      allow(SyncProducer).to receive(:new).and_return(@sync_producer)
 
       @producer = Producer.new([], "client_id", :type => :sync)
     end
 
     it "turns MessagesToSend into Message objects" do
-      @sync_producer.should_receive(:send_messages).with([an_instance_of(Message)])
+      expect(@sync_producer).to receive(:send_messages).with([an_instance_of(Message)])
 
       m = MessageToSend.new("topic", "value")
       @producer.send_messages([m])

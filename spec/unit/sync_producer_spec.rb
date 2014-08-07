@@ -22,21 +22,21 @@ describe SyncProducer do
 
   describe "sending" do
     before(:each) do
-      Kernel.stub!(:sleep)
+      allow(Kernel).to receive(:sleep)
 
-      @broker_pool = stub('broker_pool').as_null_object
-      BrokerPool.stub!(:new).and_return(@broker_pool)
+      @broker_pool = double('broker_pool').as_null_object
+      allow(BrokerPool).to receive(:new).and_return(@broker_pool)
 
-      @cluster_metadata = stub('cluster_metadata', :last_refreshed_at => Time.now).as_null_object
-      ClusterMetadata.stub!(:new).and_return(@cluster_metadata)
+      @cluster_metadata = double('cluster_metadata', :last_refreshed_at => Time.now).as_null_object
+      allow(ClusterMetadata).to receive(:new).and_return(@cluster_metadata)
 
-      @mbts = stub('messages_to_send', :needs_metadata? => false).as_null_object
-      MessagesToSend.stub!(:new).and_return(@mbts)
+      @mbts = double('messages_to_send', :needs_metadata? => false).as_null_object
+      allow(MessagesToSend).to receive(:new).and_return(@mbts)
     end
 
     context "needs metadata" do
       before(:each) do
-        @mbts.stub!(:needs_metadata?).and_return(true)
+        allow(@mbts).to receive(:needs_metadata?).and_return(true)
       end
 
       it "fetches metadata" do
@@ -49,7 +49,7 @@ describe SyncProducer do
 
     context "there are messages to send" do
       before(:each) do
-        @mbts.stub!(:messages_for_brokers).and_return([double('mfb').as_null_object])
+        allow(@mbts).to receive(:messages_for_brokers).and_return([double('mfb').as_null_object])
       end
 
       it "sends messages" do
@@ -62,22 +62,22 @@ describe SyncProducer do
 
     context "always fails" do
       before(:each) do
-        @mbts.stub!(:pending_messages?).and_return(true)
+        allow(@mbts).to receive(:pending_messages?).and_return(true)
         @sp = SyncProducer.new("test_client", [])
       end
 
       it "retries the correct number of times" do
-        @mbts.should_receive(:messages_for_brokers).exactly(4).times
+        expect(@mbts).to receive(:messages_for_brokers).exactly(4).times
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
 
       it "sleeps the correct amount between retries" do
-        Kernel.should_receive(:sleep).with(0.1).exactly(4).times
+        expect(Kernel).to receive(:sleep).with(0.1).exactly(4).times
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
 
       it "refreshes metadata between retries" do
-        @cluster_metadata.should_receive(:update).exactly(4).times
+        expect(@cluster_metadata).to receive(:update).exactly(4).times
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue StandardError
       end
 
@@ -90,19 +90,19 @@ describe SyncProducer do
 
     context "no retries" do
       before(:each) do
-        @mbts.stub!(:pending_messages?).and_return(true)
+        allow(@mbts).to receive(:pending_messages?).and_return(true)
         @sp = SyncProducer.new("test_client", [], max_send_retries: 0)
       end
 
       it "does not call sleep" do
-        Kernel.should_receive(:sleep).exactly(0).times
+        expect(Kernel).to receive(:sleep).exactly(0).times
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")]) rescue Errors::UnableToFetchMetadata
       end
     end
 
     context "succeeds on first attempt" do
       before(:each) do
-        @mbts.stub!(:pending_messages?).and_return(false)
+        allow(@mbts).to receive(:pending_messages?).and_return(false)
         @sp = SyncProducer.new("test_client", [])
       end
 
@@ -111,19 +111,19 @@ describe SyncProducer do
       end
 
       it "does not sleep" do
-        Kernel.should_not_receive(:sleep)
+        expect(Kernel).not_to receive(:sleep)
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
       end
 
       it "only attempts to send once" do
-        @mbts.should_receive(:messages_for_brokers).once
+        expect(@mbts).to receive(:messages_for_brokers).once
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
       end
     end
 
     context "succeeds on second attempt" do
       before(:each) do
-        @mbts.stub!(:pending_messages?).and_return(true, false)
+        allow(@mbts).to receive(:pending_messages?).and_return(true, false)
         @sp = SyncProducer.new("test_client", [])
       end
 
@@ -132,12 +132,12 @@ describe SyncProducer do
       end
 
       it "sleeps once" do
-        Kernel.should_receive(:sleep).once
+        expect(Kernel).to receive(:sleep).once
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
       end
 
       it "attempts to send twice" do
-        @mbts.should_receive(:messages_for_brokers).twice
+        expect(@mbts).to receive(:messages_for_brokers).twice
         @sp.send_messages([Message.new(:topic => "topic", :value => "value")])
       end
     end

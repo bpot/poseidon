@@ -6,7 +6,7 @@ describe MessagesForBroker do
       @messages = [ Message.new(:topic => "topic1",:value => "hi0"),
                     Message.new(:topic => "topic1",:value => "hi1")]
 
-      @compression_config = stub('compression_config',
+      @compression_config = double('compression_config',
                                  :compression_codec_for_topic => nil)
 
       @mfb = MessagesForBroker.new(0)
@@ -37,7 +37,7 @@ describe MessagesForBroker do
 
     context "and topic is compressed" do
       it "builds the protocol object correctly" do
-        @compression_config.stub!(:compression_codec_for_topic => Compression::GzipCodec)
+        allow(@compression_config).to receive_messages(:compression_codec_for_topic => Compression::GzipCodec)
         protocol_object = @mfb.build_protocol_objects(@compression_config)
 
         messages_for_topics = [

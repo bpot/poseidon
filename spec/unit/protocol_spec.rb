@@ -36,7 +36,7 @@ describe "objects with errors" do
     partition_fetch_response = PartitionFetchResponse.new(0, 5, 100, message_set)
     topic_fetch_response = TopicFetchResponse.new('test_topic',
                                                   [partition_fetch_response])
-    response = FetchResponse.new(stub('common'), [topic_fetch_response])
+    response = FetchResponse.new(double('common'), [topic_fetch_response])
 
     expect(response.objects_with_errors).to eq([partition_fetch_response])
   end
@@ -47,7 +47,7 @@ describe "objects with errors" do
     partition_fetch_response = PartitionFetchResponse.new(0, 5, 100, message_set)
     topic_fetch_response = TopicFetchResponse.new('test_topic',
                                                   [partition_fetch_response])
-    response = FetchResponse.new(stub('common'), [topic_fetch_response])
+    response = FetchResponse.new(double('common'), [topic_fetch_response])
 
     expect { response.raise_error_if_one_exists }.to raise_error
   end
