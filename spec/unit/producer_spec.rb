@@ -32,7 +32,9 @@ describe Producer do
     end
 
     it "turns MessagesToSend into Message objects" do
-      expect(@sync_producer).to receive(:send_messages).with([an_instance_of(Message)])
+      expect(@sync_producer).to receive(:send_messages).with(an_instance_of(Array)) do |array|
+        array.each { |obj| expect(obj).to be_an_instance_of(Message) }
+      end
 
       m = MessageToSend.new("topic", "value")
       @producer.send_messages([m])
