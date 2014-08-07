@@ -100,7 +100,7 @@ describe Message do
 
       resp_buf = Protocol::ResponseBuffer.new(req_buf.to_s)
 
-      expect(Message.read(resp_buf).value).to eq(s.force_encoding("ASCII-8BIT"))
+      expect(Message.read(resp_buf).value).to eq(s.force_encoding(Encoding::BINARY))
     end
   end
 

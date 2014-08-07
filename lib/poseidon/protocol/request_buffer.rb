@@ -4,7 +4,7 @@ module Poseidon
     #
     # API parallels the primitive types described on the wiki, with some
     # sugar for prepending message sizes and checksums.
-    # (https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-ProtocolPrimitiveTypes) 
+    # (https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-ProtocolPrimitiveTypes)
     class RequestBuffer
       def initialize
         @s = ''
@@ -32,7 +32,7 @@ module Poseidon
       end
 
       # Add a string
-      # 
+      #
       # @param [String] string
       def string(string)
         if string.nil?
@@ -79,7 +79,7 @@ module Poseidon
       private
 
       def ensure_ascii
-        @s.force_encoding("ASCII-8BIT")
+        @s.force_encoding(Encoding::BINARY)
       end
     end
   end
