@@ -3,6 +3,7 @@ require 'socket'
 require 'zlib'
 require 'thread'
 require 'set'
+require 'logger'
 
 # Top level Poseidon namespace
 #
