@@ -21,10 +21,11 @@ module Poseidon
       :retry_backoff_ms => 100,
       :required_acks => 0,
       :ack_timeout_ms => 1500,
+      :socket_timeout_ms => 10_000
     }
 
     attr_reader :client_id, :retry_backoff_ms, :max_send_retries,
-      :metadata_refresh_interval_ms, :required_acks, :ack_timeout_ms
+      :metadata_refresh_interval_ms, :required_acks, :ack_timeout_ms, :socket_timeout_ms
     def initialize(client_id, seed_brokers, options = {})
       @client_id = client_id
 
@@ -32,7 +33,7 @@ module Poseidon
 
       @cluster_metadata   = ClusterMetadata.new
       @message_conductor  = MessageConductor.new(@cluster_metadata, @partitioner)
-      @broker_pool        = BrokerPool.new(client_id, seed_brokers)
+      @broker_pool        = BrokerPool.new(client_id, seed_brokers, socket_timeout_ms)
     end
 
     def send_messages(messages)
@@ -93,6 +94,7 @@ module Poseidon
 
     def handle_options(options)
       @ack_timeout_ms    = handle_option(options, :ack_timeout_ms)
+      @socket_timeout_ms = handle_option(options, :socket_timeout_ms)
       @retry_backoff_ms  = handle_option(options, :retry_backoff_ms)
 
       @metadata_refresh_interval_ms = 

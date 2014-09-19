@@ -6,11 +6,12 @@ module Poseidon
     class UnknownBroker < StandardError; end
 
     # @param [String] client_id
-    def initialize(client_id, seed_brokers)
+    def initialize(client_id, seed_brokers, socket_timeout_ms)
       @connections = {}
       @brokers = {}
       @client_id = client_id
       @seed_brokers = seed_brokers
+      @socket_timeout_ms = socket_timeout_ms
     end
 
     def fetch_metadata(topics)
@@ -52,7 +53,7 @@ module Poseidon
     private
     def fetch_metadata_from_broker(broker, topics)
       host, port = broker.split(":")
-      c = Connection.new(host, port, @client_id)
+      c = Connection.new(host, port, @client_id, @socket_timeout_ms)
       c.topic_metadata(topics)
     rescue Connection::ConnectionFailedError
       return nil
@@ -69,7 +70,7 @@ module Poseidon
       if info.nil?
         raise UnknownBroker
       end
-      Connection.new(info[:host], info[:port], @client_id)
+      Connection.new(info[:host], info[:port], @client_id, @socket_timeout_ms)
     end
   end
 end

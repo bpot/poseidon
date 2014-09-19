@@ -22,7 +22,7 @@ module Poseidon
     # this is a stop-gap.
     #
     def self.consumer_for_partition(client_id, seed_brokers, topic, partition, offset, options = {})
-      broker_pool = BrokerPool.new(client_id, seed_brokers)
+      broker_pool = BrokerPool.new(client_id, seed_brokers, options[:socket_timeout_ms] || 10_000)
 
       cluster_metadata = ClusterMetadata.new
       cluster_metadata.update(broker_pool.fetch_metadata([topic]))
@@ -61,19 +61,24 @@ module Poseidon
     # @option options [:min_bytes] Smallest amount of data the server should send us.
     #   Default: 1 (Send us data as soon as it is ready)
     #
+    # @option options [:socket_timeout_ms]
+    #   How long to wait for reply from server. Should be higher than max_wait_ms.
+    #   Default: 10000 (10s)
+    #
     # @api public
     def initialize(client_id, host, port, topic, partition, offset, options = {})
       @host = host
       @port = port
 
-      @connection = Connection.new(host, port, client_id)
+      handle_options(options)
+
+      @connection = Connection.new(host, port, client_id, @socket_timeout_ms)
       @topic = topic
       @partition = partition
       if Symbol === offset
         raise ArgumentError, "Unknown special offset type: #{offset}" unless [:earliest_offset, :latest_offset].include?(offset)
       end
       @offset = offset
-      handle_options(options)
     end
 
     # Fetch messages from the broker.
@@ -144,9 +149,15 @@ module Poseidon
 
     private
     def handle_options(options)
-      @max_bytes    = options.delete(:max_bytes) || 1024*1024
-      @min_bytes    = options.delete(:min_bytes) || 1
-      @max_wait_ms  = options.delete(:max_wait_ms) || 10_000
+      @max_bytes         = options.delete(:max_bytes) || 1024*1024
+      @min_bytes         = options.delete(:min_bytes) || 1
+      @max_wait_ms       = options.delete(:max_wait_ms) || 10_000
+      @socket_timeout_ms = options.delete(:socket_timeout_ms) || @max_wait_ms + 10_000
+
+      if @socket_timeout_ms < @max_wait_ms
+        raise ArgumentError, "Setting socket_timeout_ms should be higher than max_wait_ms"
+      end
+
       if options.keys.any?
         raise ArgumentError, "Unknown options: #{options.keys.inspect}"
       end

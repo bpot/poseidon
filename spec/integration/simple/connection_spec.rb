@@ -3,7 +3,7 @@ require 'integration/simple/spec_helper'
 include Protocol
 describe Connection do
   before(:each) do
-    @connection = Connection.new("localhost", 9092, "test")
+    @connection = Connection.new("localhost", 9092, "test", 10_000)
   end
 
   it 'sends and parses topic metadata requests' do

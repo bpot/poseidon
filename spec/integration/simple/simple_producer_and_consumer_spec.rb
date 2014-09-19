@@ -56,7 +56,7 @@ describe "simple producer and consumer" do
 
     it "waits for messages" do
       # Create topic
-      @c = Connection.new("localhost", 9092, "metadata_fetcher")
+      @c = Connection.new("localhost", 9092, "metadata_fetcher", 10_000)
       @c.topic_metadata(["simple_wait_test"])
 
       sleep 5

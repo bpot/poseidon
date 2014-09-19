@@ -3,21 +3,35 @@ require 'spec_helper'
 describe BrokerPool do
   context "empty broker list" do
     it "raises UnknownBroker error when trying to produce data" do
-      expect { BrokerPool.new("test_client", []).execute_api_call(0, :produce) }.to raise_error(BrokerPool::UnknownBroker)
+      expect { BrokerPool.new("test_client", [], 10_000).execute_api_call(0, :produce) }.to raise_error(BrokerPool::UnknownBroker)
     end
   end
 
   describe "fetching metadata" do
+    context "single broker" do
+      it "initializes connection properly" do
+        @broker_pool = BrokerPool.new("test_client", ["localhost:9092"], 2_000)
+        @broker = double('Poseidon::Connection', :topic_metadata => nil)
+
+        expected_args = ["localhost", "9092", "test_client", 2_000]
+        connection = stub('conn').as_null_object
+
+        Connection.should_receive(:new).with(*expected_args).and_return(connection)
+
+        @broker_pool.fetch_metadata(Set.new)
+      end
+    end
+
     context "no seed brokers" do
       it "raises Error" do
-        @broker_pool = BrokerPool.new("test_client", [])
+        @broker_pool = BrokerPool.new("test_client", [], 10_000)
         expect { @broker_pool.fetch_metadata(Set.new) }.to raise_error(Errors::UnableToFetchMetadata)
       end
     end
 
     context "2 seed brokers" do
       before(:each) do
-        @broker_pool = BrokerPool.new("test_client", ["first:9092","second:9092"])
+        @broker_pool = BrokerPool.new("test_client", ["first:9092","second:9092"], 10_000)
         @broker_1 = double('Poseidon::Connection_1', :topic_metadata => nil, :close => nil)
         @broker_2 = double('Poseidon::Connection_2', :topic_metadata => double('topic_metadata').as_null_object, :close => nil)
         Connection.stub!(:new).and_return(@broker_1, @broker_2)
@@ -42,7 +56,7 @@ describe BrokerPool do
 
   context "which knowns about two brokers" do
     before(:each) do
-      @broker_pool = BrokerPool.new("test_client", [])
+      @broker_pool = BrokerPool.new("test_client", [], 10_000)
       @broker_pool.update_known_brokers({0 => { :host => "localhost", :port => 9092 }, 1 => {:host => "localhost", :port => 9093 }})
     end
 
@@ -50,7 +64,7 @@ describe BrokerPool do
 
       it "creates a connection for the correct broker" do
         c = stub('conn').as_null_object
-        expected_args = ["localhost", 9092, "test_client"]
+        expected_args = ["localhost", 9092, "test_client", 10_000]
 
         Connection.should_receive(:new).with(*expected_args).and_return(c)
         @broker_pool.execute_api_call(0, :produce)

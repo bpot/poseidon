@@ -128,6 +128,9 @@ module Poseidon
     # @option options [Integer] :ack_timeout_ms (1500)
     #   How long the producer waits for acks.
     #
+    # @option options [Integer] :socket_timeout_ms] (10000)
+    #   How long the producer socket waits for any reply from server.
+    #
     # @api public
     def initialize(brokers, client_id, options = {})
       options = options.dup

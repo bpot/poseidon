@@ -10,6 +10,7 @@ describe SyncProducer do
       expect(sp.metadata_refresh_interval_ms).to eq(600_000)
       expect(sp.required_acks).to eq(0)
       expect(sp.max_send_retries).to eq(3)
+      expect(sp.socket_timeout_ms).to eq(10_000)
     end
 
     it "raises ArgumentError on unknown options" do
