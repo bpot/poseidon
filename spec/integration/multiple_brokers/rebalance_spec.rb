@@ -3,8 +3,8 @@ require 'integration/multiple_brokers/spec_helper'
 describe "producer handles rebalancing" do
   before(:each) do
     # autocreate the topic by asking for information about it
-    @c = Connection.new("localhost", 9093, "metadata_fetcher")
-    md = @c.topic_metadata(["failure_spec"])
+    @c = Connection.new("localhost", 9093, "metadata_fetcher", 10_000)
+    @c.topic_metadata(["failure_spec"])
     sleep 1
   end
 

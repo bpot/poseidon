@@ -3,7 +3,7 @@ require 'integration/multiple_brokers/spec_helper'
 describe "round robin sending" do
   describe "with small message batches" do
     it "evenly distributes messages across brokers" do
-      c = Connection.new("localhost", 9092, "metadata_fetcher")
+      c = Connection.new("localhost", 9092, "metadata_fetcher", 10_000)
       md = c.topic_metadata(["test"])
       sleep 1
       md = c.topic_metadata(["test"])
