@@ -6,8 +6,8 @@ module Poseidon
     class UnknownBroker < StandardError; end
 
     # @yieldparam [BrokerPool]
-    def self.open(client_id, seed_brokers, &block)
-      broker_pool = new(client_id, seed_brokers)
+    def self.open(client_id, seed_brokers, socket_timeout_ms, &block)
+      broker_pool = new(client_id, seed_brokers, socket_timeout_ms)
 
       yield broker_pool
     ensure

@@ -12,8 +12,8 @@ module Poseidon
     REPLICA_ID = -1 # Replica id is always -1 for non-brokers
 
     # @yieldparam [Connection]
-    def self.open(host, port, client_id, &block)
-      connection = new(host, port, client_id)
+    def self.open(host, port, client_id, socket_timeout_ms, &block)
+      connection = new(host, port, client_id, socket_timeout_ms)
 
       yield connection
     ensure
