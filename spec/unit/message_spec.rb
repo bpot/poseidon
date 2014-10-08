@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'spec_helper'
 
-describe Message do
+RSpec.describe Message do
   describe "when constructing a new message" do
     it 'raises an ArgumentError on unknown options' do
       expect { Message.new(:cow => "dog") }.to raise_error(ArgumentError)

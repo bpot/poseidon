@@ -1,6 +1,6 @@
 require 'integration/simple/spec_helper'
 
-describe "truncated messages" do
+RSpec.describe "truncated messages", :type => :request do
   before(:each) do
     @s1 = "a" * 335
     @s2 = "b" * 338
@@ -8,7 +8,7 @@ describe "truncated messages" do
     @producer = Producer.new(["localhost:9092"],
                              "test_client",
                              :type => :sync)
-                             
+
     @producer.send_messages([Message.new(:topic => 'test_max_bytes', :value => @s1), Message.new(:topic => 'test_max_bytes', :value => @s2)])
   end
 
@@ -25,7 +25,7 @@ describe "truncated messages" do
       consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
                                        "test_max_bytes", 0, :earliest_offset)
 
-      messages = consumer.fetch(:max_bytes => n) 
+      messages = consumer.fetch(:max_bytes => n)
       expect(messages.size).to eq(1)
       expect(messages.first.value).to eq(@s1)
     end
@@ -36,7 +36,7 @@ describe "truncated messages" do
       consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
                                        "test_max_bytes", 0, :earliest_offset)
 
-      messages = consumer.fetch(:max_bytes => n) 
+      messages = consumer.fetch(:max_bytes => n)
       expect(messages.size).to eq(2)
       expect(messages.map(&:value)).to eq([@s1, @s2])
     end

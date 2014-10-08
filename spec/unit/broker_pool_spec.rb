@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe BrokerPool do
+RSpec.describe BrokerPool do
   context "empty broker list" do
     it "raises UnknownBroker error when trying to produce data" do
       expect { BrokerPool.new("test_client", [], 10_000).execute_api_call(0, :produce) }.to raise_error(BrokerPool::UnknownBroker)

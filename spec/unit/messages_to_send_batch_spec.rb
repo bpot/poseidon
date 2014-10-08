@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe MessagesToSendBatch do
+RSpec.describe MessagesToSendBatch do
   context "messages sent to two different brokers" do
     before(:each) do
       message_conductor = double('message_conductor')
@@ -19,7 +19,7 @@ describe MessagesToSendBatch do
 
     it "has all messages in the returned message brokers" do
       messages = @batch.messages_for_brokers.map(&:messages).flatten
-      expect(messages.to_set).to eq(@messages.to_set) 
+      expect(messages.to_set).to eq(@messages.to_set)
     end
   end
 end

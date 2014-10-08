@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe MessagesToSend do
+RSpec.describe MessagesToSend do
   before(:each) do
     @messages = []
     @messages << Message.new(:topic => "test1", :value => "hi")
@@ -22,7 +22,7 @@ describe MessagesToSend do
 
       expect(@mts.needs_metadata?).to eq(false)
     end
-  end 
+  end
 
   describe "sending" do
     before(:each) do

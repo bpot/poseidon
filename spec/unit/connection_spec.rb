@@ -1,4 +1,4 @@
 require 'spec_helper'
 
-describe Connection do
+RSpec.describe Connection do
 end

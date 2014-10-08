@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 include Protocol
-describe MessageConductor do
+RSpec.describe MessageConductor do
   context "two available partitions" do
     before(:each) do
       partitions = [

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Compression do
+RSpec.describe Compression do
   it 'returns GzipCompessor for codec_id of 1' do
     codec = Compression.find_codec(1)
     expect(codec).to eq(Compression::GzipCodec)

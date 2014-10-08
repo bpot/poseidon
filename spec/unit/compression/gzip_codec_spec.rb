@@ -1,7 +1,7 @@
 # encoding: utf-8
 require 'spec_helper'
 
-describe Poseidon::Compression::GzipCodec do
+RSpec.describe Poseidon::Compression::GzipCodec do
 
   let :data do
     %({"a":"val1"}\n{"a":"val2"}\n{"a":"val3"})

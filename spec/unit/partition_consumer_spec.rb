@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe PartitionConsumer do
+RSpec.describe PartitionConsumer do
   before(:each) do
     @connection = double('connection')
     allow(Connection).to receive(:new).and_return(@connection)

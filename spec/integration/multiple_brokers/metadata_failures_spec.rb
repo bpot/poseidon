@@ -1,6 +1,6 @@
 require 'integration/multiple_brokers/spec_helper'
 
-describe "handling failures" do
+RSpec.describe "handling failures", :type => :request do
   describe "metadata failures" do
     before(:each) do
       @messages_to_send = [

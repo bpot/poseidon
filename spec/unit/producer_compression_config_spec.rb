@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ProducerCompressionConfig do
+RSpec.describe ProducerCompressionConfig do
   describe "creation" do
     it "raises ArgumentError when codec is unknown" do
       expect { ProducerCompressionConfig.new(:ripple, nil) }.to raise_error(ArgumentError)
