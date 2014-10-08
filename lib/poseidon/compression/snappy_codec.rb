@@ -6,12 +6,24 @@ module Poseidon
       end
 
       def self.compress(s)
-        raise "Unimplemented"
+        check!
+        Snappy.deflate(s)
       end
 
       def self.decompress(s)
-        raise "Unimplemented"
+        check!
+        Snappy::Reader.new(StringIO.new(s)).read
       end
+
+      def self.check!
+        @checked ||= begin
+          require 'snappy'
+          true
+        rescue LoadError
+          raise "Snappy compression is not available, please install the 'snappy' gem"
+        end
+      end
+
     end
   end
 end

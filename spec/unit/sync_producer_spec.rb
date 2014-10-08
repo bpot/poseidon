@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SyncProducer do
+RSpec.describe SyncProducer do
   describe "creation" do
 
     it "sets correct defaults" do

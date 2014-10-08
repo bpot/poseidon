@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe TopicMetadata do
+RSpec.describe TopicMetadata do
   context "encoding" do
     it "roundtrips" do
       partition_metadata = Protocol::PartitionMetadata.new(0, 0, 0, [0], [0])

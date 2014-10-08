@@ -4,6 +4,7 @@ require 'zlib'
 require 'thread'
 require 'set'
 require 'logger'
+require 'stringio'
 
 # Top level Poseidon namespace
 #

@@ -1,6 +1,6 @@
 require 'integration/simple/spec_helper'
 
-describe "compression" do
+RSpec.describe "compression", :type => :request do
   it "roundtrips" do
     i = rand(1000)
 
@@ -12,7 +12,7 @@ describe "compression" do
                              :type => :sync,
                              :compression_codec => :gzip)
     messages = [MessageToSend.new("test12", "Hello World: #{i}")]
-    
+
     expect(@producer.send_messages(messages)).to eq(true)
     sleep 1
     messages = @consumer.fetch

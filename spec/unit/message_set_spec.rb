@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe MessageSet do
+RSpec.describe MessageSet do
   describe "converting to a compressed message" do
     before(:each) do
       ms = MessageSet.new([Message.new(:value => "I will be compressed", :topic => "test")])

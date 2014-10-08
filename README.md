@@ -30,7 +30,6 @@ producer.send_messages(messages)
 
 More detailed [Poseidon::Producer](http://rubydoc.info/github/bpot/poseidon/Poseidon/Producer) documentation.
 
-
 ### Fetching messages from Kafka
 
 ```ruby
@@ -48,6 +47,10 @@ end
 ```
 
 More detailed [Poseidon::PartitionConsumer](http://rubydoc.info/github/bpot/poseidon/Poseidon/PartitionConsumer) documentation.
+
+### Using snappy compression
+
+To use snappy compression in your producers or consumers, install the [snappy](http://rubygems.org/gems/snappy) gem or simply add `gem 'snappy'` to your project's Gemfile.
 
 ## Semantic Versioning
 

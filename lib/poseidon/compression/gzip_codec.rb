@@ -8,7 +8,7 @@ module Poseidon
       def self.compress(s)
         io = StringIO.new
         io.set_encoding(Encoding::BINARY)
-        gz = Zlib::GzipWriter.new io, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY, :encoding => Encoding::BINARY
+        gz = Zlib::GzipWriter.new io, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY
         gz.write s
         gz.close
         io.string
@@ -16,7 +16,7 @@ module Poseidon
 
       def self.decompress(s)
         io = StringIO.new(s)
-        Zlib::GzipReader.new(io, :encoding => Encoding::BINARY).read
+        Zlib::GzipReader.new(io).read
       end
     end
   end

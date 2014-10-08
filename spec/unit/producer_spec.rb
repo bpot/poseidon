@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Producer do
+RSpec.describe Producer do
   it "requires brokers and client_id" do
     expect { Producer.new }.to raise_error
   end

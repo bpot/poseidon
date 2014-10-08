@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 include Protocol
-describe ClusterMetadata do
+RSpec.describe ClusterMetadata do
   describe "populated" do
     before(:each) do
       partitions = [

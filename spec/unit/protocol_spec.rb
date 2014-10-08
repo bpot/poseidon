@@ -1,6 +1,6 @@
 require 'spec_helper'
 include Protocol
-describe RequestCommon do
+RSpec.describe RequestCommon do
   it "roundtrips" do
     rc = RequestCommon.new(0,1,2,"client_id")
 
@@ -14,7 +14,7 @@ describe RequestCommon do
   end
 end
 
-describe MetadataRequest do
+RSpec.describe MetadataRequest do
   it "roundtrips" do
     rc = RequestCommon.new(0,1,2,"client_id")
     mr = MetadataRequest.new(rc, ["topic1","topic2"])
@@ -29,7 +29,7 @@ describe MetadataRequest do
   end
 end
 
-describe "objects with errors" do
+RSpec.describe "objects with errors" do
   it "returns objects that have errors" do
     message_set = MessageSet.new
     message_set << Message.new(:value => "value", :key => "key")

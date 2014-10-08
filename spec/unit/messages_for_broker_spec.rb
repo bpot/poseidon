@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe MessagesForBroker do
+RSpec.describe MessagesForBroker do
   context "twos message one to broker 0, partition 0, another to partition 1" do
     before(:each) do
       @messages = [ Message.new(:topic => "topic1",:value => "hi0"),
