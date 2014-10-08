@@ -5,6 +5,15 @@ module Poseidon
   class BrokerPool
     class UnknownBroker < StandardError; end
 
+    # @yieldparam [BrokerPool]
+    def self.open(client_id, seed_brokers, socket_timeout_ms, &block)
+      broker_pool = new(client_id, seed_brokers, socket_timeout_ms)
+
+      yield broker_pool
+    ensure
+      broker_pool.close
+    end
+
     # @param [String] client_id
     def initialize(client_id, seed_brokers, socket_timeout_ms)
       @connections = {}
@@ -45,20 +54,21 @@ module Poseidon
     end
 
     # Closes all open connections to brokers
-    def shutdown
+    def close
       @brokers.values(&:close)
       @brokers = {}
     end
 
+    alias_method :shutdown, :close
+
     private
     def fetch_metadata_from_broker(broker, topics)
       host, port = broker.split(":")
-      c = Connection.new(host, port, @client_id, @socket_timeout_ms)
-      c.topic_metadata(topics)
+      Connection.open(host, port, @client_id, @socket_timeout_ms) do |connection|
+        connection.topic_metadata(topics)
+      end
     rescue Connection::ConnectionFailedError
       return nil
-    ensure
-      c && c.close
     end
 
     def connection(broker_id)

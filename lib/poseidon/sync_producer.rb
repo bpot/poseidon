@@ -69,10 +69,12 @@ module Poseidon
       end
     end
 
-    def shutdown
-      @broker_pool.shutdown
+    def close
+      @broker_pool.close
     end
-    
+
+    alias_method :shutdown, :close
+
     private
 
     def ensure_metadata_available_for_topics(messages_to_send)

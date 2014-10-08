@@ -11,6 +11,15 @@ module Poseidon
     API_VERSION = 0
     REPLICA_ID = -1 # Replica id is always -1 for non-brokers
 
+    # @yieldparam [Connection]
+    def self.open(host, port, client_id, socket_timeout_ms, &block)
+      connection = new(host, port, client_id, socket_timeout_ms)
+
+      yield connection
+    ensure
+      connection.close
+    end
+
     attr_reader :host, :port
 
     # Create a new connection

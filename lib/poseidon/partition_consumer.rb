@@ -22,13 +22,13 @@ module Poseidon
     # this is a stop-gap.
     #
     def self.consumer_for_partition(client_id, seed_brokers, topic, partition, offset, options = {})
-      broker_pool = BrokerPool.new(client_id, seed_brokers, options[:socket_timeout_ms] || 10_000)
 
-      cluster_metadata = ClusterMetadata.new
-      cluster_metadata.update(broker_pool.fetch_metadata([topic]))
+      broker = BrokerPool.open(client_id, seed_brokers, options[:socket_timeout_ms] || 10_000) do |broker_pool|
+        cluster_metadata = ClusterMetadata.new
+        cluster_metadata.update(broker_pool.fetch_metadata([topic]))
 
-      broker = cluster_metadata.lead_broker_for_partition(topic, partition)
-      broker_pool.shutdown
+        cluster_metadata.lead_broker_for_partition(topic, partition)
+      end
 
       new(client_id, broker.host, broker.port, topic, partition, offset, options)
     end
