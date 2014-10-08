@@ -14,9 +14,9 @@ describe BrokerPool do
         @broker = double('Poseidon::Connection', :topic_metadata => nil)
 
         expected_args = ["localhost", "9092", "test_client", 2_000]
-        connection = stub('conn').as_null_object
+        connection = double('conn').as_null_object
 
-        Connection.should_receive(:new).with(*expected_args).and_return(connection)
+        expect(Connection).to receive(:new).with(*expected_args).and_return(connection)
 
         @broker_pool.fetch_metadata(Set.new)
       end
