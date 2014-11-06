@@ -72,15 +72,16 @@ module Poseidon
   class Producer
     # @api private
     VALID_OPTIONS = [
-      :type,
-      :compression_codec,
+      :ack_timeout_ms,
       :compressed_topics,
+      :compression_codec,
+      :max_send_retries,
       :metadata_refresh_interval_ms,
       :partitioner,
-      :max_send_retries,
       :retry_backoff_ms,
       :required_acks,
-      :ack_timeout_ms
+      :socket_timeout_ms,
+      :type,
     ]
 
     # @api private

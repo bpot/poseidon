@@ -23,6 +23,10 @@ RSpec.describe Producer do
     expect { Producer.new([],"client_id", Producer::OPTION_DEFAULTS.dup) }.not_to raise_error
   end
 
+  it "accepts socket_timeout_ms option" do
+    expect { Producer.new([],"client_id", socket_timeout_ms: 10_000) }.not_to raise_error
+  end
+
   describe "sending messages" do
     before(:each) do
       @sync_producer = double('sync_producer').as_null_object
