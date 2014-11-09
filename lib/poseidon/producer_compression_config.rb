@@ -10,7 +10,7 @@ module Poseidon
       if compression_codec
         @compression_codec = COMPRESSION_CODEC_MAP[compression_codec]
         if @compression_codec.nil?
-          raise ArgumentError, "Uknown compression codec: '#{compression_codec}' (accepted: #{COMPRESSION_CODEC_MAP.keys.inspect})"
+          raise ArgumentError, "Unknown compression codec: '#{compression_codec}' (accepted: #{COMPRESSION_CODEC_MAP.keys.inspect})"
         end
       else
         @compression_codec = nil
