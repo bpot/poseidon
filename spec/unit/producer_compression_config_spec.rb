@@ -14,6 +14,13 @@ RSpec.describe ProducerCompressionConfig do
     end
   end
 
+  describe "none compression codec" do
+    it "compresses no topics" do
+      pcc = ProducerCompressionConfig.new(:none,nil)
+      expect(pcc.compression_codec_for_topic("test")).to eq(false)
+    end
+  end
+
   describe "compression codec no topics specified" do
     it "compresses any topic" do
       pcc = ProducerCompressionConfig.new(:gzip,nil)
