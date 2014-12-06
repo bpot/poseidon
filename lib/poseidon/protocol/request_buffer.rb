@@ -7,10 +7,11 @@ module Poseidon
     # (https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-ProtocolPrimitiveTypes)
     class RequestBuffer
       def initialize
-        @s = ''
+        @s = ''.encode(Encoding::BINARY)
       end
 
       def append(string)
+        string = string.dup.force_encoding(Encoding::BINARY)
         @s << string
         nil
       end
@@ -53,33 +54,23 @@ module Poseidon
       end
 
       def prepend_crc32
-        ensure_ascii
         checksum_pos = @s.bytesize
         @s += " "
         yield
-        ensure_ascii
         @s[checksum_pos] = [Zlib::crc32(@s[(checksum_pos+1)..-1])].pack("N")
         nil
       end
 
       def prepend_size
-        ensure_ascii
         size_pos = @s.bytesize
         @s += " "
         yield
-        ensure_ascii
         @s[size_pos] = [(@s.bytesize-1) - size_pos].pack("N")
         nil
       end
 
       def to_s
-        ensure_ascii
-      end
-
-      private
-
-      def ensure_ascii
-        @s.force_encoding(Encoding::BINARY)
+        @s
       end
     end
   end
