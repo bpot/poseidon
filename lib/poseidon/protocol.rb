@@ -1,5 +1,6 @@
 module Poseidon
   # @api private
+  # https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol
   module Protocol
     require "poseidon/protocol/protocol_struct"
     require "poseidon/protocol/request_buffer"
@@ -9,7 +10,11 @@ module Poseidon
       :produce => 0,
       :fetch => 1,
       :offset => 2,
-      :metadata => 3
+      :metadata => 3,
+      # 4-7 Non-user facing control APIs
+      :offset_commit => 8,
+      :offset_fetch => 9,
+      :consumer_metadata => 10
     }
 
     # Request/Response Common Structures
@@ -118,5 +123,45 @@ module Poseidon
     MetadataResponse = ProtocolStruct.new(:common => ResponseCommon,
                                           :brokers => [Broker],
                                           :topics => [TopicMetadata])
+
+    # Consumer Metadata Request
+    ConsumerMetadataRequest = ProtocolStruct.new(:consumer_group => :string)
+
+    # Consumer Metadata Response
+    ConsumerMetadataResponse = ProtocolStruct.new(:error => :int16,
+                                                  :coordinator_id => :int32,
+                                                  :coordinator_host => :string,
+                                                  :coordinator_port => :int32)
+
+    # Offset Commit Request
+    OffsetCommitRequest = ProtocolStruct.new(:consumer_group => :string,
+                                             :topic_name => :string,
+                                             :partition => :int32,
+                                             :offset => :int64,
+                                             :template_stamp => :int64,
+                                             :metadata => :string)
+
+    # Offset Commit Response
+    OffsetCommitPartitionResponse = ProtocolStruct.new(:partition => :int32,
+                                                       :error_code => :int16)
+    OffsetCommitTopicResponse = ProtocolStruct.new(:topic_name => :string,
+                                                   :partitions => [OffsetCommitPartitionResponse])
+    OffsetCommitResponse = ProtocolStruct.new(:topic_responses => [OffsetCommitTopicResponse])
+
+    # Offset Fetch Request
+    OffsetFetchPartitionRequest = ProtocolStruct.new(:partition => :int32)
+    OffsetFetchTopicRequest = ProtocolStruct.new(:topic_name => :string,
+                                                 :partitions => [OffsetFetchPartitionRequest])
+    OffsetFetchRequest = ProtocolStruct.new(:consumer_group => :string,
+                                            :topic_requests => [OffsetFetchTopicRequest])
+
+    # Offset Fetch Response
+    OffsetFetchPartitionResponse = ProtocolStruct.new(:partition => :int32,
+                                                      :offset => :int64,
+                                                      :metadata => :string,
+                                                      :error_code => :int16)
+    OffsetFetchTopicResponse = ProtocolStruct.new(:topic_name => :string,
+                                                  :partitions => [OffsetFetchPartitionResponse])
+    OffsetFetchResponse = ProtocolStruct.new(:topic_responses => [OffsetFetchTopicResponse])
   end
 end
