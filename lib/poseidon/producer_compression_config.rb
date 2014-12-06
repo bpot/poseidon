@@ -3,15 +3,16 @@ module Poseidon
   class ProducerCompressionConfig
     COMPRESSION_CODEC_MAP = {
       :gzip   => Compression::GzipCodec,
-      :snappy => Compression::SnappyCodec
+      :snappy => Compression::SnappyCodec,
+      :none   => nil
     }
 
     def initialize(compression_codec, compressed_topics)
       if compression_codec
-        @compression_codec = COMPRESSION_CODEC_MAP[compression_codec]
-        if @compression_codec.nil?
+        unless COMPRESSION_CODEC_MAP.has_key?(compression_codec)
           raise ArgumentError, "Unknown compression codec: '#{compression_codec}' (accepted: #{COMPRESSION_CODEC_MAP.keys.inspect})"
         end
+        @compression_codec = COMPRESSION_CODEC_MAP[compression_codec]
       else
         @compression_codec = nil
       end
