@@ -1,6 +1,14 @@
-# 0.0.5 (Unreleased)
+# 0.0.5
 
-* Fix serious bug where we would send messages to the wrong partition [GH-36]. (Thanks @sclasen and @jorgeortiz85 for tracking this down.)
+* Add support for negative offsets. [GH-24]
+* Fix serious bug where we would send messages to the wrong partition. [GH-36] (Thanks @sclasen and @jorgeortiz85 for tracking this down.)
+* Better error message when we can't connect to a broker. [GH-42]
+* Handle broker rebalances. [GH-43]
+* PartitionConsumer: Block for messages by default. [GH-48]
+* Add a logger to help debug issues. [GH-51]
+* Add snappy support. [GH-57]
+* Allow `:none` value for `:compression_codec` option. [GH-72]
+* Allow request buffer to accept mixed encodings. [GH-74]
 
 # 0.0.4
 
