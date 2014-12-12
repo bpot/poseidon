@@ -4,11 +4,16 @@ module Poseidon
   #
   # @api private
   class ClusterMetadata
-    attr_reader :brokers, :last_refreshed_at, :topic_metadata
+    attr_reader :brokers, :last_refreshed_at, :topic_metadata, :topics_of_interest
     def initialize
       @brokers        = {}
       @topic_metadata = {}
+      @topics_of_interest = Set.new
       @last_refreshed_at = nil
+    end
+
+    def add_topic(topic_of_interest)
+      @topics_of_interest.add(topic_of_interest)
     end
 
     # Update what we know about the cluter based on MetadataResponse

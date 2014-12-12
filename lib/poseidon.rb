@@ -100,6 +100,7 @@ require "poseidon/message_to_send"
 require "poseidon/producer"
 require "poseidon/fetched_message"
 require "poseidon/partition_consumer"
+require "poseidon/new_producer"
 
 # Poseidon!
 require "poseidon/message"
@@ -118,3 +119,9 @@ require "poseidon/messages_to_send_batch"
 require "poseidon/producer_compression_config"
 require "poseidon/sync_producer"
 require "poseidon/version"
+
+require "poseidon/record_accumulator"
+require "poseidon/producer_sender"
+require "poseidon/selector"
+require "poseidon/network_client"
+require "poseidon/stream"

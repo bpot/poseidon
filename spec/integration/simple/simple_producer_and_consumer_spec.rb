@@ -4,22 +4,28 @@ RSpec.describe "simple producer and consumer", :type => :request do
 
   describe "writing and consuming one topic" do
     it "fetches produced messages" do
-      @producer = Producer.new(["localhost:9092"],
-                               "test_client",
-                               :type => :sync)
+      @selector = Selector.new
+
+      @selector.connect(0, "localhost", 9092)
+      @selector.poll([])
+      pp @selector
+
+#      @producer = NewProducer.new("test_client", ["localhost:9092"])
 
 
-      messages = [MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")]
-      expect(@producer.send_messages(messages)).to eq(true)
+#      future = @producer.send_message(MessageToSend.new("topic_simple_producer_and_consumer", "Hello World"))
+#      future.wait
+      #expect(@producer.send_messages(messages)).to eq(true)
 
-      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
-                                        "topic_simple_producer_and_consumer", 0, -2)
-      messages = @consumer.fetch
-      expect(messages.last.value).to eq("Hello World")
-
-      @producer.close
+      #@consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
+      #                                  "topic_simple_producer_and_consumer", 0, -2)
+      #messages = @consumer.fetch
+      #expect(messages.last.value).to eq("Hello World")
+#
+#      @producer.close
     end
 
+=begin
     it "fetches only messages since the last offset" do
       @producer = Producer.new(["localhost:9092"],
                                "test_client",
@@ -96,7 +102,6 @@ RSpec.describe "simple producer and consumer", :type => :request do
       messages = @consumer.fetch(:max_bytes => 1400000)
       expect(messages.length).to be > 2
     end
-=end
   end
 
   describe "broker that becomes unavailable" do
@@ -116,5 +121,6 @@ RSpec.describe "simple producer and consumer", :type => :request do
         expect { @consumer.fetch }.to raise_error(Connection::ConnectionFailedError)
       end
     end
+=end
   end
 end

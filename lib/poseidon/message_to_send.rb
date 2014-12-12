@@ -7,7 +7,7 @@ module Poseidon
   #
   # @api public
   class MessageToSend
-    attr_reader :value, :key, :topic
+    attr_reader :value, :key, :topic, :partition
 
     # Create a new message for sending to a Kafka broker.
     #
@@ -28,6 +28,7 @@ module Poseidon
       @topic  = topic
       @value  = value
       @key    = key
+      @partition = partition
     end
   end
 end
