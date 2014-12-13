@@ -9,28 +9,35 @@ module Poseidon
       @client_id          = client_id
       @cluster_metadata   = ClusterMetadata.new
       @message_conductor  = MessageConductor.new(@cluster_metadata, @partitioner)
-      @broker_pool        = BrokerPool.new(client_id, seed_brokers, @socket_timeout_ms)
+
+      @cluster_metadata.add_seed_brokers(seed_brokers)
 
       @selector = Selector.new
-      @client = NetworkClient.new(@selector, @client_id)
+      @client = NetworkClient.new(@selector, @client_id, @cluster_metadata)
       @record_accumulator = RecordAccumulator.new
       @sender = ProducerSender.new(@client, @cluster_metadata, @record_accumulator)
+
     end
 
-    def send_message(message_to_send)
+    def send_message(message_to_send, &cb)
+      wait_on_metadata(message_to_send.topic)
+
       if refresh_interval_elapsed?
         refresh_metadata(message_to_send.topic)
       end
 
-      ensure_metadata_available_for_topic(message_to_send.topic)
-
-      pp @cluster_metadata
+      #pp @cluster_metadata
 
       partition_id, _ = @message_conductor.destination(message_to_send.topic, message_to_send.key)
 
       puts "Sending to #{partition_id}"
-      future = @record_accumulator.add(message_to_send.topic, message_to_send.key, message_to_send.value, partition_id)
+      future = @record_accumulator.add(message_to_send.topic, message_to_send.key, message_to_send.value, partition_id, compression = nil, cb)
       future 
+    end
+
+    def close
+      @sender.initiate_close
+      @sender.join
     end
 
     private
@@ -40,10 +47,18 @@ module Poseidon
       @broker_pool.update_known_brokers(@cluster_metadata.brokers)
     end
 
+    def wait_on_metadata(topic)
+      while !@cluster_metadata.have_metadata_for_topics?([topic])
+        @cluster_metadata.add_topic(topic)
+        @cluster_metadata.request_update
+        @sender.wakeup
+      end
+    end
+
     def ensure_metadata_available_for_topic(topic)
       while !@cluster_metadata.have_metadata_for_topics?([topic])
-        puts "Refreshing metadata"
-        pp @cluster_metadata
+        #puts "Refreshing metadata"
+        #pp @cluster_metadata
         refresh_metadata(topic)
         sleep 10
       end

@@ -7,25 +7,26 @@ RSpec.describe "simple producer and consumer", :type => :request do
       @producer = NewProducer.new("test_client", ["localhost:9092"])
 
 
-      future = @producer.send_message(MessageToSend.new("topic_simple_producer_and_consumer", "Hello World"))
-      pp future
-      future.wait
-      #expect(@producer.send_messages(messages)).to eq(true)
+      cb_triggered = false
+      future = @producer.send_message(MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")) do |metadata, error|
+        cb_triggered = true
+      end
+      record_metadata = future.get
 
-      #@consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
-      #                                  "topic_simple_producer_and_consumer", 0, -2)
-      #messages = @consumer.fetch
-      #expect(messages.last.value).to eq("Hello World")
-#
-#      @producer.close
+      expect(cb_triggered).to eq(true)
+      expect(record_metadata.topic).to eq("topic_simple_producer_and_consumer")
+      expect(record_metadata.partition).to eq(0)
+      expect(record_metadata.offset).to eq(0)
+
+      @producer.close
+      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
+                                        "topic_simple_producer_and_consumer", 0, -2)
+      messages = @consumer.fetch
+      expect(messages.last.value).to eq("Hello World")
     end
 
-=begin
     it "fetches only messages since the last offset" do
-      @producer = Producer.new(["localhost:9092"],
-                               "test_client",
-                               :type => :sync,
-                               :required_acks => 1)
+      @producer = NewProducer.new("test_client", ["localhost:9092"], :required_acks => 1)
 
       @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
                                         "topic_simple_producer_and_consumer", 0, -1)
@@ -37,15 +38,15 @@ RSpec.describe "simple producer and consumer", :type => :request do
       end
 
       # First Batch
-      messages = [MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")]
-      expect(@producer.send_messages(messages)).to eq(true)
+      message = MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")
+      expect { @producer.send_message(message).get }.to_not raise_error
 
       messages = @consumer.fetch
       expect(messages.last.value).to eq("Hello World")
 
       # Second Batch
-      messages = [MessageToSend.new("topic_simple_producer_and_consumer", "Hello World Again")]
-      expect(@producer.send_messages(messages)).to eq(true)
+      message = MessageToSend.new("topic_simple_producer_and_consumer", "Hello World Again")
+      expect { @producer.send_message(message).get }.to_not raise_error
 
       messages = @consumer.fetch
       expect(messages.map(&:value)).to eq(["Hello World Again"])
@@ -71,9 +72,28 @@ RSpec.describe "simple producer and consumer", :type => :request do
       end
       expect(n).to be_within(0.25).of(2.5)
     end
+  end
+
+  describe "broker that becomes unavailable" do
+    it "fails the fetch" do
+      @producer = NewProducer.new("test_client", ["localhost:9092"])
+
+
+      message = MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")
+      expect { @producer.send_messages(messages).get }.to_not raise_error
+
+      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
+                                        "topic_simple_producer_and_consumer", 0, -2)
+
+      $tc.broker.without_process do
+        expect { @consumer.fetch }.to raise_error(Connection::ConnectionFailedError)
+      end
+    end
+  end
+end
+=begin
 
     # Not sure what's going on here, will revisit.
-=begin
     it "fetches larger messages with a larger max bytes size" do
       @producer = Producer.new(["localhost:9092"],
                                 "test_client",
@@ -98,24 +118,6 @@ RSpec.describe "simple producer and consumer", :type => :request do
       expect(messages.length).to be > 2
     end
   end
-
-  describe "broker that becomes unavailable" do
-    it "fails the fetch" do
-      @producer = Producer.new(["localhost:9092"],
-                               "test_client",
-                               :type => :sync)
-
-
-      messages = [MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")]
-      expect(@producer.send_messages(messages)).to eq(true)
-
-      @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
-                                        "topic_simple_producer_and_consumer", 0, -2)
-
-      $tc.broker.without_process do
-        expect { @consumer.fetch }.to raise_error(Connection::ConnectionFailedError)
-      end
-    end
-=end
   end
 end
+=end

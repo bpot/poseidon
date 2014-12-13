@@ -11,6 +11,28 @@ module Poseidon
       @partitions_by_broker = {}
       @topics_of_interest = Set.new
       @last_refreshed_at = nil
+      @need_update = false
+      @version = 0
+    end
+
+    def add_seed_brokers(seed_brokers)
+      broker_id = -1
+      seed_brokers.each do |s|
+        host, port = s.split(":")
+        @brokers[broker_id] = Protocol::Broker.new(broker_id, host, port)
+
+        broker_id -= 1
+      end
+    end
+
+    def request_update
+      @need_update = true
+
+      @version
+    end
+
+    def needs_update?
+      @need_update
     end
 
     def add_topic(topic_of_interest)
@@ -27,6 +49,7 @@ module Poseidon
       update_broker_to_partition_map(topic_metadata_response.topics)
 
       @last_refreshed_at = Time.now
+      @need_update = false
       nil
     end
 

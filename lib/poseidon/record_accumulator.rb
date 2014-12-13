@@ -5,11 +5,10 @@ module Poseidon
       @record_batches_by_topic_partition = {}
     end
 
-    def add(topic, key, value, partition_id)
-      puts "ADDING THING TO RECORD ACCUMULATOR"
+    def add(topic, key, value, partition_id, compression, cb)
       topic_partition = TopicPartition.new(topic, partition_id)
       @record_batches_by_topic_partition[topic_partition] ||= RecordBatch.new(topic_partition)
-      @record_batches_by_topic_partition[topic_partition].try_append(key,value)
+      @record_batches_by_topic_partition[topic_partition].try_append(key,value, cb)
     end
 
     LONG_MAX = 9223372036854775807
@@ -21,7 +20,6 @@ module Poseidon
       # Exhausted?
       @record_batches_by_topic_partition.keys.each do |topic_partition|
         leader = cluster_metadata.lead_broker_for_partition(topic_partition.topic, topic_partition.partition)
-        p "LEADER: #{leader.inspect}"
         if leader.nil?
           unknown_leaders_exist = true
         elsif !ready_brokers.include?(leader)
@@ -49,6 +47,9 @@ module Poseidon
         end
       end
       @batches
+    end
+
+    def close
     end
   end
 end

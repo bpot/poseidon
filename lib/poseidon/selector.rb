@@ -2,7 +2,7 @@ module Poseidon
   class Selector
     include Socket::Constants
 
-    attr_reader :connected, :completed_receives
+    attr_reader :connected, :disconnected, :completed_receives
     def initialize
       @streams = {}
       @streams_inverted = {}
@@ -68,10 +68,20 @@ module Poseidon
       end
 
       if can_read
-        pp "CAN READ"
         can_read.each do |readable|
-          completed = readable.handle_read
-          @completed_receives += completed.map { |buffer| NetworkReceive.new(@streams_inverted[readable], buffer) }
+          begin
+            completed = readable.handle_read
+            @completed_receives += completed.map { |buffer| NetworkReceive.new(@streams_inverted[readable], buffer) }
+          rescue EOFError
+            puts "DISCONNECTED: #{readable}"
+            # Need to do anything with the stream here?!
+            # What if there are things to send in the buffer?!
+            broker_id = @streams_inverted[readable]
+            @disconnected << broker_id
+
+            @streams_inverted.delete(readable)
+            @streams.delete(broker_id)
+          end
         end
       end
     end
@@ -79,13 +89,11 @@ module Poseidon
     def completed_sends
     end
 
-    def disconnected
-    end
-
     private
     def clear
       @connected = []
       @completed_receives = []
+      @disconnected = []
     end
   end
 end

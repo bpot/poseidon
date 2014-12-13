@@ -1,3 +1,3 @@
 module Poseidon
-  ClientRequest = Struct.new(:send, :attachment)
+  ClientRequest = Struct.new(:request, :attachment)
 end

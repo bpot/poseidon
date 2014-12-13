@@ -42,6 +42,7 @@ module Poseidon
       elsif @state == :connected && @sends.any?
         send = @sends.first
         request_buffer = Protocol::RequestBuffer.new
+        pp send
         send.request.struct.write(request_buffer)
 
         message = [request_buffer.to_s.bytesize].pack("N") + request_buffer.to_s

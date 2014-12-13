@@ -23,14 +23,23 @@ module Poseidon
       }
     end
 
+    def initiate_close
+      @running = false
+      @record_accumulator.close
+      wakeup
+    end
+
+    def join
+      @sender_thread.join
+    end
+
     def wakeup
+      # ???
     end
 
     def run
       ready = @record_accumulator.ready(@cluster_metadata)
-      p "READY FROM RECORD ACCUMULATOR: #{ready.inspect}"
-
-      # TODO force metadata refresh is we need to
+      # TODO force metadata refresh if we need to
 
       ready.select! do |broker|
         @client.ready(broker)
@@ -38,13 +47,10 @@ module Poseidon
 
       p "READY: #{ready.inspect}"
 
-      p "DRAINGED!"
       record_batches_by_broker = @record_accumulator.drain(@cluster_metadata, ready)
       requests = []
       if record_batches_by_broker && record_batches_by_broker.any?
         record_batches_by_broker.each do |broker_id, record_batches|
-          puts "RECORDS"
-          pp record_batches
 
           messages_for_topics = []
           batches_by_topic = record_batches.group_by(&:topic)
@@ -63,24 +69,30 @@ module Poseidon
             messages_for_topics << Protocol::MessagesForTopic.new(topic, messages_for_partitions)
           end
 
-          pp messages_for_topics
-
           # XXX gets acks from somewhere
           producer_request_for_broker = Protocol::ProduceRequest.new(@client.next_request_header(:produce), 1, 30000, messages_for_topics)
-          requests << ClientRequest.new(RequestSend.new(broker_id, producer_request_for_broker))
+          requests << ClientRequest.new(RequestSend.new(broker_id, producer_request_for_broker), record_batches.group_by(&:topic_partition))
         end
       end
         
-      pp requests
       responses = @client.poll(requests)
-      pp "ZOMG RESPONSES: #{responses.inspect}"
       responses.each do |response|
-        pp Protocol::ProduceResponse.read(response.response)
+        if response.disconnected
+          pp response.request.attachment
+          raise "Not handling disconnect"
+        else
+          produce_response = Protocol::ProduceResponse.read(response.response)
+          record_batches_by_topic_partition = response.request.attachment
+          produce_response.topic_response.each do |topic_response|
+            topic_response.partitions.each do |partition_response|
+              topic_partition = TopicPartition.new(topic_response.topic, partition_response.partition)
+              # XXX first?
+              record_batch = record_batches_by_topic_partition[topic_partition].first
+              record_batch.done(partition_response.offset)
+            end
+          end
+        end
       end
-    end
-
-    private
-    def build_request(records)
     end
   end
 end

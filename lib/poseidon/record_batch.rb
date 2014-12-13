@@ -1,10 +1,11 @@
 module Poseidon
   class RecordBatch
-    attr_reader :records
+    attr_reader :records, :topic_partition
     def initialize(topic_partition)
       @topic_partition = topic_partition
+      @produce_request_result = ProduceRequestResult.new
       @records = []
-      @produce_request_result = Concurrent::IVar.new
+      @thunks = []
     end
 
     def topic
@@ -15,13 +16,15 @@ module Poseidon
       @topic_partition.partition
     end
 
-    def wait
-      @producer_request_result.wait
-    end
-
-    def get
-      wait
-      raise "Huh"
+    def done(base_offset, error = nil)
+      @produce_request_result.done(@topic_partition, base_offset, error)
+      @thunks.each do |callback, future|
+        if error.nil?
+          callback.call(future)
+        else
+          raise "ZOMG DONNU BOUT ERRRS"
+        end
+      end
     end
 
     def try_append(key, value, callback = nil)
@@ -29,7 +32,11 @@ module Poseidon
         key: key,
         value: value
       }
-      FutureRecordMetadata.new(@produce_request_result, @records.size - 1)
+      future = FutureRecordMetadata.new(@produce_request_result, @records.size - 1)
+      if callback
+        @thunks << [callback, future]
+      end
+      future
     end
   end
 end

@@ -1,3 +1,3 @@
 module Poseidon
-  ClientResponse = Struct.new(:request, :response)
+  ClientResponse = Struct.new(:request, :disconnected, :response)
 end
