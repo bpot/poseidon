@@ -1,0 +1,1 @@
+- Selector: add broker id to Stream instead of inverted index

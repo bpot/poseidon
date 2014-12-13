@@ -4,17 +4,12 @@ RSpec.describe "simple producer and consumer", :type => :request do
 
   describe "writing and consuming one topic" do
     it "fetches produced messages" do
-      @selector = Selector.new
-
-      @selector.connect(0, "localhost", 9092)
-      @selector.poll([])
-      pp @selector
-
-#      @producer = NewProducer.new("test_client", ["localhost:9092"])
+      @producer = NewProducer.new("test_client", ["localhost:9092"])
 
 
-#      future = @producer.send_message(MessageToSend.new("topic_simple_producer_and_consumer", "Hello World"))
-#      future.wait
+      future = @producer.send_message(MessageToSend.new("topic_simple_producer_and_consumer", "Hello World"))
+      pp future
+      future.wait
       #expect(@producer.send_messages(messages)).to eq(true)
 
       #@consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,

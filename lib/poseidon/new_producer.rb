@@ -12,14 +12,12 @@ module Poseidon
       @broker_pool        = BrokerPool.new(client_id, seed_brokers, @socket_timeout_ms)
 
       @selector = Selector.new
-      @client = NetworkClient.new(@selector)
+      @client = NetworkClient.new(@selector, @client_id)
       @record_accumulator = RecordAccumulator.new
       @sender = ProducerSender.new(@client, @cluster_metadata, @record_accumulator)
     end
 
     def send_message(message_to_send)
-      ivar = Concurrent::IVar.new
-
       if refresh_interval_elapsed?
         refresh_metadata(message_to_send.topic)
       end
@@ -31,13 +29,8 @@ module Poseidon
       partition_id, _ = @message_conductor.destination(message_to_send.topic, message_to_send.key)
 
       puts "Sending to #{partition_id}"
-      @record_accumulator.add(message_to_send.topic, message_to_send.key, message_to_send.value, partition_id)
-
-      pp @record_accumulator.records_by_broker_id(@cluster_metadata)
-
-      #@sender.run
-
-      ivar
+      future = @record_accumulator.add(message_to_send.topic, message_to_send.key, message_to_send.value, partition_id)
+      future 
     end
 
     private

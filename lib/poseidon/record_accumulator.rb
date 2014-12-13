@@ -2,28 +2,53 @@ module Poseidon
   class RecordAccumulator
     attr_reader :records
     def initialize
-      @records = []
+      @record_batches_by_topic_partition = {}
     end
 
     def add(topic, key, value, partition_id)
-      @records << {
-        topic: topic,
-        key: key,
-        value: value,
-        partition_id: partition_id
-      }
+      puts "ADDING THING TO RECORD ACCUMULATOR"
+      topic_partition = TopicPartition.new(topic, partition_id)
+      @record_batches_by_topic_partition[topic_partition] ||= RecordBatch.new(topic_partition)
+      @record_batches_by_topic_partition[topic_partition].try_append(key,value)
     end
 
-    def records_by_broker_id(cluster_metadata)
-      collated = {}
-      @records.each do |h|
-        leader = cluster_metadata.lead_broker_for_partition(h[:topic], h[:partition_id])
-        if leader
-          collated[leader.id] ||= []
-          collated[leader.id] << h
+    LONG_MAX = 9223372036854775807
+    def ready(cluster_metadata)
+      ready_brokers = Set.new
+      next_ready_check_delay_ms = LONG_MAX
+      unknown_leaders_exist = false
+
+      # Exhausted?
+      @record_batches_by_topic_partition.keys.each do |topic_partition|
+        leader = cluster_metadata.lead_broker_for_partition(topic_partition.topic, topic_partition.partition)
+        p "LEADER: #{leader.inspect}"
+        if leader.nil?
+          unknown_leaders_exist = true
+        elsif !ready_brokers.include?(leader)
+          # TODO just asssume sendable now...
+          backing_off = false
+
+          ready_brokers.add(leader)
         end
       end
-      collated
+
+      ready_brokers
+    end
+
+    def drain(cluster_metadata, ready_brokers)
+      return if ready_brokers.empty?
+
+      @batches = {}
+      ready_brokers.each do |broker|
+        @batches[broker.id] ||= []
+        partitions = cluster_metadata.partitions_for_broker(broker)
+        partitions.each do |partition|
+          topic_partition = TopicPartition.new(partition[:topic], partition[:partition].id)
+          @batches[broker.id] << @record_batches_by_topic_partition[topic_partition]
+          @record_batches_by_topic_partition.delete(topic_partition)
+        end
+      end
+      @batches
     end
   end
 end

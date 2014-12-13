@@ -2,6 +2,7 @@ module Poseidon
   class Selector
     include Socket::Constants
 
+    attr_reader :connected, :completed_receives
     def initialize
       @streams = {}
       @streams_inverted = {}
@@ -39,57 +40,52 @@ module Poseidon
     def close
     end
 
-    def poll(sends)
+    def poll(network_sends)
+      clear
+
+      #puts "NETWORK SENDS"
+      #pp network_sends
+
+      requests_to_write = {}
+      network_sends.each do |send|
+        stream = @streams[send.destination]
+        stream << send
+      end
+
       writes = @streams.values.select(&:write?)
-      can_read, can_write, = IO.select(nil, writes, nil, 10)
-      pp can_read
-      pp can_write
-      can_write.each do |writable|
-        case writable.handle_write
-        when :connected
-          @connected << writable
-        else
-          p "Meh"
-        end
-      end
-#      clear
-      
-=begin
-      writes = sends.keys.map { |broker_id| @socks[broker_id] }
-      # XXX raise error if writes has a nil
-      #
-      reads = @socks.keys
-
-      can_read, can_write, _ = IO.select(reads, writes, [], 1)
-      if can_read
-        can_read.each do |io|
-        end
-      end
-
+      can_read, can_write, = IO.select(@streams.values, writes, nil, 30)
+      #pp can_read
+      #pp can_write
       if can_write
-        can_write.each do |io|
-          broker_id = @socks_inverted[io]
-          to_send = sends[broker_id]
-          io.write(to_send)
+        can_write.each do |writable|
+          case writable.handle_write
+          when :connected
+            @connected << @streams_inverted[writable]
+          else
+            p "Meh"
+          end
         end
       end
-=end
+
+      if can_read
+        pp "CAN READ"
+        can_read.each do |readable|
+          completed = readable.handle_read
+          @completed_receives += completed.map { |buffer| NetworkReceive.new(@streams_inverted[readable], buffer) }
+        end
+      end
     end
 
     def completed_sends
     end
 
-    def completed_receives
-    end
-
     def disconnected
-    end
-
-    def connected
     end
 
     private
     def clear
+      @connected = []
+      @completed_receives = []
     end
   end
 end

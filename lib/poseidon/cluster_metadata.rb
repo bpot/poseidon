@@ -8,6 +8,7 @@ module Poseidon
     def initialize
       @brokers        = {}
       @topic_metadata = {}
+      @partitions_by_broker = {}
       @topics_of_interest = Set.new
       @last_refreshed_at = nil
     end
@@ -23,6 +24,7 @@ module Poseidon
     def update(topic_metadata_response)
       update_brokers(topic_metadata_response.brokers)
       update_topics(topic_metadata_response.topics)
+      update_broker_to_partition_map(topic_metadata_response.topics)
 
       @last_refreshed_at = Time.now
       nil
@@ -50,6 +52,10 @@ module Poseidon
     # @param [Integer] broker_id Broker id 
     def broker(broker_id)
       @brokers[broker_id]
+    end
+
+    def partitions_for_broker(broker)
+      @partitions_by_broker[broker.id]
     end
 
     # Return lead broker for topic and partition
@@ -81,6 +87,17 @@ module Poseidon
       topics.each do |topic|
         if topic.exists?
           @topic_metadata[topic.name] = topic
+        end
+      end
+    end
+
+    def update_broker_to_partition_map(topics)
+      topics.each do |topic|
+        topic.struct.partitions.each do |partition|
+          if partition.leader != -1
+            @partitions_by_broker[partition.leader] ||= []
+            @partitions_by_broker[partition.leader] << {:topic => topic.name, :partition => partition}
+          end
         end
       end
     end

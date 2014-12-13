@@ -70,7 +70,7 @@ module Poseidon
       @topic = options.delete(:topic)
 
       if options.any?
-        raise ArgumentError, "Unknown options: #{options.keys.inspect}"
+        raise ArgumentError, "Unknown option(s): #{options.keys.inspect}"
       end
     end
 
