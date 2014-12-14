@@ -50,18 +50,20 @@ module Poseidon
     # @param [Hash] options
     #   Theses options can all be overridden in each individual fetch command.
     #
-    # @option options [:max_bytes] Maximum number of bytes to fetch
+    # @option options [Integer] :max_bytes
+    #   Maximum number of bytes to fetch
     #   Default: 1048576 (1MB)
     #
-    # @option options [:max_wait_ms] 
+    # @option options [Integer] :max_wait_ms
     #   How long to block until the server sends us data.
     #   NOTE: This is only enforced if min_bytes is > 0.
     #   Default: 100 (100ms)
     #
-    # @option options [:min_bytes] Smallest amount of data the server should send us.
+    # @option options [Integer] :min_bytes
+    #   Smallest amount of data the server should send us.
     #   Default: 1 (Send us data as soon as it is ready)
     #
-    # @option options [:socket_timeout_ms]
+    # @option options [Integer] :socket_timeout_ms
     #   How long to wait for reply from server. Should be higher than max_wait_ms.
     #   Default: 10000 (10s)
     #
@@ -85,13 +87,13 @@ module Poseidon
     #
     # @param [Hash] options
     #
-    # @option options [:max_bytes]
+    # @option options [Integer] :max_bytes
     #   Maximum number of bytes to fetch
     #
-    # @option options [:max_wait_ms]
+    # @option options [Integer] :max_wait_ms
     #   How long to block until the server sends us data.
     #
-    # @option options [:min_bytes] 
+    # @option options [Integer] :min_bytes
     #   Smallest amount of data the server should send us.
     #
     # @api public
