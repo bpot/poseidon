@@ -11,7 +11,6 @@ module Poseidon
     end
 
     def complete_next(node)
-      pp @requests[node]
       @requests[node].shift
     end
 

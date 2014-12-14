@@ -42,8 +42,10 @@ module Poseidon
         partitions = cluster_metadata.partitions_for_broker(broker)
         partitions.each do |partition|
           topic_partition = TopicPartition.new(partition[:topic], partition[:partition].id)
-          @batches[broker.id] << @record_batches_by_topic_partition[topic_partition]
-          @record_batches_by_topic_partition.delete(topic_partition)
+          if record_batch = @record_batches_by_topic_partition[topic_partition]
+            @batches[broker.id] << record_batch
+            @record_batches_by_topic_partition.delete(topic_partition)
+          end
         end
       end
       @batches

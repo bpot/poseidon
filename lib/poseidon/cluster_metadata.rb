@@ -1,27 +1,58 @@
+require 'concurrent/atomic/condition'
 module Poseidon
   # Encapsulates what we known about brokers, topics and partitions
   # from Metadata API calls.
   #
   # @api private
   class ClusterMetadata
-    attr_reader :brokers, :last_refreshed_at, :topic_metadata, :topics_of_interest
-    def initialize
+    attr_reader :brokers, :last_refreshed_at, :topic_metadata, :topics_of_interest, :refresh_backoff_ms, :version
+    def initialize(refresh_backoff_ms, metadata_expire_ms)
+      @refresh_backoff_ms = refresh_backoff_ms
+      @metadata_expire_ms = metadata_expire_ms
+
+      @condition = Concurrent::Condition.new
+      @mutex = Mutex.new
+
       @brokers        = {}
       @topic_metadata = {}
       @partitions_by_broker = {}
       @topics_of_interest = Set.new
       @last_refreshed_at = nil
+      @last_refresh_ms = 0
       @need_update = false
       @version = 0
     end
 
+    def time_to_next_update
+      now = Poseidon.timestamp_ms
+      time_to_expire = @need_update ? 0 : [@last_refresh_ms + @metadata_expire_ms - now, 0].max
+      time_to_allow_update = @last_refresh_ms + @refresh_backoff_ms - now
+      [time_to_expire, time_to_allow_update].max
+    end
+
     def add_seed_brokers(seed_brokers)
+      @last_refresh_ms = Poseidon.timestamp_ms
+
       broker_id = -1
       seed_brokers.each do |s|
         host, port = s.split(":")
         @brokers[broker_id] = Protocol::Broker.new(broker_id, host, port)
 
         broker_id -= 1
+      end
+    end
+
+    def await_update(last_version, max_wait_ms)
+      start = Poseidon.timestamp_ms
+      remaining_wait_ms = max_wait_ms
+      while @version < last_version
+        @mutex.synchronize { @condition.wait(remaining_wait_ms) }
+
+        elapsed = Poseidon.timestamp_ms - start
+        if elapsed > max_wait_ms
+          raise "METADATA FAILURES"
+        end
+        remaining_wait_ms = max_wait_ms - elapsed
       end
     end
 
@@ -49,7 +80,10 @@ module Poseidon
       update_broker_to_partition_map(topic_metadata_response.topics)
 
       @last_refreshed_at = Time.now
+      @last_refresh_ms = Poseidon.timestamp_ms
       @need_update = false
+
+      @mutex.synchronize { @condition.broadcast }
       nil
     end
 

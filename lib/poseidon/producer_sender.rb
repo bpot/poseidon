@@ -34,7 +34,7 @@ module Poseidon
     end
 
     def wakeup
-      # ???
+      @client.wakeup
     end
 
     def run
@@ -45,9 +45,10 @@ module Poseidon
         @client.ready(broker)
       end
 
-      p "READY: #{ready.inspect}"
+      #p "READY: #{ready.inspect}"
 
       record_batches_by_broker = @record_accumulator.drain(@cluster_metadata, ready)
+      #pp "DRAINED: #{record_batches_by_broker.inspect}"
       requests = []
       if record_batches_by_broker && record_batches_by_broker.any?
         record_batches_by_broker.each do |broker_id, record_batches|
@@ -78,7 +79,7 @@ module Poseidon
       responses = @client.poll(requests)
       responses.each do |response|
         if response.disconnected
-          pp response.request.attachment
+          #puts "DISCONNECTED: #{response}"
           raise "Not handling disconnect"
         else
           produce_response = Protocol::ProduceResponse.read(response.response)

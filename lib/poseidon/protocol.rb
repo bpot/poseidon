@@ -10,7 +10,13 @@ module Poseidon
       :fetch => 1,
       :offset => 2,
       :metadata => 3
-    }
+    }.freeze
+
+    API_KEYS_INVERTED = Hash[API_KEYS.map(&:reverse)].freeze
+
+    def self.api_key_for_id(id)
+      API_KEYS_INVERTED[id] 
+    end
 
     # Request/Response Common Structures
     RequestCommon = ProtocolStruct.new(:api_key => :int16,

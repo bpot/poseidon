@@ -11,6 +11,8 @@ module Poseidon
       @completed_receives = []
       @connected = []
       @disconnected = []
+
+      @wait, @wake = IO.pipe
     end
 
     def connect(broker_id, host, port)
@@ -35,6 +37,7 @@ module Poseidon
     end
 
     def wakeup
+      @wake.write "\0"
     end
 
     def close
@@ -52,8 +55,9 @@ module Poseidon
         stream << send
       end
 
+      reads = @streams.values#.select(&:read?)
       writes = @streams.values.select(&:write?)
-      can_read, can_write, = IO.select(@streams.values, writes, nil, 30)
+      can_read, can_write, = IO.select(reads + [@wait], writes, nil, 30)
       #pp can_read
       #pp can_write
       if can_write
@@ -62,18 +66,25 @@ module Poseidon
           when :connected
             @connected << @streams_inverted[writable]
           else
-            p "Meh"
+            #p "Meh"
           end
         end
       end
 
       if can_read
         can_read.each do |readable|
+          if readable == @wait
+            # XXX need to handle case where more than 4096 wakeups have been triggered!?
+            @wait.read_nonblock(4096)
+            next
+            # Return here?
+          end
+
           begin
             completed = readable.handle_read
             @completed_receives += completed.map { |buffer| NetworkReceive.new(@streams_inverted[readable], buffer) }
           rescue EOFError
-            puts "DISCONNECTED: #{readable}"
+            #puts "DISCONNECTED: #{readable}"
             # Need to do anything with the stream here?!
             # What if there are things to send in the buffer?!
             broker_id = @streams_inverted[readable]

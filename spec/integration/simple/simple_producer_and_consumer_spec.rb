@@ -80,7 +80,7 @@ RSpec.describe "simple producer and consumer", :type => :request do
 
 
       message = MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")
-      expect { @producer.send_messages(messages).get }.to_not raise_error
+      expect { @producer.send_message(message).get }.to_not raise_error
 
       @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
                                         "topic_simple_producer_and_consumer", 0, -2)

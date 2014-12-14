@@ -6,10 +6,24 @@ require 'set'
 require 'logger'
 require 'stringio'
 
+require 'timestamp'
+require 'active_support/notifications'
+
+trap('TTIN') do
+  Thread.list.each do |t|
+    puts "---------------------------------------------"
+    puts t.backtrace.join("\n")
+  end
+end
+
 # Top level Poseidon namespace
 #
 # @api public
 module Poseidon
+  def self.timestamp_ms
+    (Time.unix_microtime * 1000).to_i
+  end
+
   # Posiedon exception namespace
   module Errors
     # @api private
