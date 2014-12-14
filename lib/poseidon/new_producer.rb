@@ -5,9 +5,10 @@ module Poseidon
       @partitioner = nil
       @socket_timeout_ms = 10_0000
       @metadata_fetch_timeout_ms = 60_000
-      @metadata_refresh_interval_ms = 600_000
-      @refresh_backoff_ms = 100
       @metadata_max_age = 5 * 60 * 1000
+      @metadata_refresh_interval_ms = 600_000
+      @reconnect_backoff_ms = 10
+      @refresh_backoff_ms = 100
 
       @client_id          = client_id
       @cluster_metadata   = ClusterMetadata.new(@refresh_backoff_ms, @metadata_max_age)
@@ -16,7 +17,7 @@ module Poseidon
       @cluster_metadata.add_seed_brokers(seed_brokers)
 
       @selector = Selector.new
-      @client = NetworkClient.new(@selector, @client_id, @cluster_metadata)
+      @client = NetworkClient.new(@selector, @client_id, @cluster_metadata, @reconnect_backoff_ms)
       @record_accumulator = RecordAccumulator.new
       @sender = ProducerSender.new(@client, @cluster_metadata, @record_accumulator)
     end
@@ -48,6 +49,7 @@ module Poseidon
         version = @cluster_metadata.version
         @cluster_metadata.add_topic(topic)
         @cluster_metadata.request_update
+        puts "Wakeup from metadata loop"
         @sender.wakeup
         @cluster_metadata.await_update(version, remaining_wait_ms) 
 

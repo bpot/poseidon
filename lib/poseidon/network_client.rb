@@ -1,29 +1,33 @@
 module Poseidon
   class NetworkClient
-    def initialize(selector, client_id, cluster_metadata)
+    def initialize(selector, client_id, cluster_metadata, reconnect_backoff_ms)
       @selector = selector
       @client_id = client_id
       @cluster_metadata = cluster_metadata
+      @reconnect_backoff_ms = reconnect_backoff_ms
 
       @in_flight_requests = InFlightRequests.new
       @connection_states = {}
+      @connection_attempted_at = {}
       @metadata_fetch_in_progress = false
     end
 
-    def ready(broker)
-      if sendable?(broker)
+    def ready(node)
+      if sendable?(node)
         return true
       end
 
-      if @connection_states[broker.id].nil? # TODO check for backoff
-        @selector.connect(broker.id, broker.host, broker.port)
-        @connection_states[broker.id] = :connecting
+      if @connection_states[node.id].nil? # TODO check for backoff
+        @selector.connect(node.id, node.host, node.port)
+
+        @connection_states[node.id] = :connecting
+        @connection_attempted_at[node.id] = Poseidon.timestamp_ms
       end
 
       return false
     end
 
-    def poll(client_requests)
+    def poll(client_requests, timeout)
       network_sends = []
       client_requests.each do |client_request|
         puts "[#{Poseidon.timestamp_ms}] Sending: #{client_request.inspect}"
@@ -41,7 +45,8 @@ module Poseidon
         maybe_update_metadata(network_sends)
       end
 
-      @selector.poll(network_sends)
+      poll_timeout = [timeout, metadata_timeout].min
+      @selector.poll(poll_timeout, network_sends)
 
       responses = []
 
@@ -108,6 +113,19 @@ module Poseidon
 
     def wakeup
       @selector.wakeup
+    end
+
+    def connection_delay(node)
+      if (state = @connection_states[node].nil?)
+        return 0
+      end
+
+      time_waited = Poseidon.timestamp_ms - @connection_attempted_at[node]
+      if state == :disconnected
+        return [@reconnect_backoff_ms, 0].max
+      else
+        return LONG_MAX
+      end
     end
 
     private

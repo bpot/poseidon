@@ -13,6 +13,7 @@ module Poseidon
       @disconnected = []
 
       @wait, @wake = IO.pipe
+      puts "PIPE: #{@wait.inspect} #{@wake.inspect}"
     end
 
     def connect(broker_id, host, port)
@@ -37,13 +38,16 @@ module Poseidon
     end
 
     def wakeup
+      puts "Waking up"
+    #  puts caller.join("\n")
+    #  puts "-----------------------------------------------"
       @wake.write "\0"
     end
 
     def close
     end
 
-    def poll(network_sends)
+    def poll(poll_timeout, network_sends)
       clear
 
       #puts "NETWORK SENDS"
@@ -57,7 +61,8 @@ module Poseidon
 
       reads = @streams.values#.select(&:read?)
       writes = @streams.values.select(&:write?)
-      can_read, can_write, = IO.select(reads + [@wait], writes, nil, 30)
+      can_read, can_write, = IO.select(reads + [@wait], writes, nil, poll_timeout / 1000.0)
+      puts "Select finished: #{can_read.inspect} to read, #{can_write.inspect} to write, timeout: #{poll_timeout/1000.0}"
       #pp can_read
       #pp can_write
       if can_write

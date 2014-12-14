@@ -6,6 +6,7 @@ module Poseidon
       @produce_request_result = ProduceRequestResult.new
       @records = []
       @thunks = []
+      @attempts = 0
     end
 
     def topic

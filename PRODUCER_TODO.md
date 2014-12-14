@@ -1,6 +1,5 @@
-- Investigate crazy metadata update stuff
+- Get metadata crap to work correctly.
 
-- Fetching metadata from the new regime
 - Speeding up specs
 - ACKS!
 - Keep going down the current path?
@@ -8,6 +7,10 @@
 - Selector: add broker id to Stream instead of inverted index
 - Thread safety?!
 - Add an option to automatically run callbacks in their own thread pool?
+
+# Cleanup
+
+- Investigate crazy metadata update stuff
 
 # New tests
 

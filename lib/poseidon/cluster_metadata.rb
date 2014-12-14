@@ -45,8 +45,9 @@ module Poseidon
     def await_update(last_version, max_wait_ms)
       start = Poseidon.timestamp_ms
       remaining_wait_ms = max_wait_ms
-      while @version < last_version
-        @mutex.synchronize { @condition.wait(remaining_wait_ms) }
+      while @version <= last_version
+        puts "Waiting for metadata for #{remaining_wait_ms}"
+        @mutex.synchronize { @condition.wait(@mutex, remaining_wait_ms / 1000.0) }
 
         elapsed = Poseidon.timestamp_ms - start
         if elapsed > max_wait_ms
@@ -83,6 +84,7 @@ module Poseidon
       @last_refresh_ms = Poseidon.timestamp_ms
       @need_update = false
 
+      @version += 1
       @mutex.synchronize { @condition.broadcast }
       nil
     end

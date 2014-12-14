@@ -11,13 +11,12 @@ module Poseidon
       @record_batches_by_topic_partition[topic_partition].try_append(key,value, cb)
     end
 
-    LONG_MAX = 9223372036854775807
     def ready(cluster_metadata)
       ready_brokers = Set.new
       next_ready_check_delay_ms = LONG_MAX
       unknown_leaders_exist = false
 
-      # Exhausted?
+      # exhausted = false
       @record_batches_by_topic_partition.keys.each do |topic_partition|
         leader = cluster_metadata.lead_broker_for_partition(topic_partition.topic, topic_partition.partition)
         if leader.nil?
@@ -30,7 +29,7 @@ module Poseidon
         end
       end
 
-      ready_brokers
+      ReadyCheckResult.new(ready_brokers, next_ready_check_delay_ms, unknown_leaders_exist)
     end
 
     def drain(cluster_metadata, ready_brokers)

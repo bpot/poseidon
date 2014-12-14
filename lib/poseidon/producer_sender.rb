@@ -38,16 +38,19 @@ module Poseidon
     end
 
     def run
-      ready = @record_accumulator.ready(@cluster_metadata)
+      ready_result = @record_accumulator.ready(@cluster_metadata)
       # TODO force metadata refresh if we need to
 
-      ready.select! do |broker|
-        @client.ready(broker)
+      not_ready_timeout = LONG_MAX
+      ready_result.ready_nodes.select! do |broker|
+        if !@client.ready(broker)
+          not_ready_timeout = [not_ready_timeout, @client.connection_delay(broker)].min
+        end
       end
 
       #p "READY: #{ready.inspect}"
 
-      record_batches_by_broker = @record_accumulator.drain(@cluster_metadata, ready)
+      record_batches_by_broker = @record_accumulator.drain(@cluster_metadata, ready_result.ready_nodes)
       #pp "DRAINED: #{record_batches_by_broker.inspect}"
       requests = []
       if record_batches_by_broker && record_batches_by_broker.any?
@@ -75,8 +78,10 @@ module Poseidon
           requests << ClientRequest.new(RequestSend.new(broker_id, producer_request_for_broker), record_batches.group_by(&:topic_partition))
         end
       end
+
+      poll_timeout = [ready_result.next_ready_check_delay_ms, not_ready_timeout].min
         
-      responses = @client.poll(requests)
+      responses = @client.poll(requests, poll_timeout)
       responses.each do |response|
         if response.disconnected
           #puts "DISCONNECTED: #{response}"

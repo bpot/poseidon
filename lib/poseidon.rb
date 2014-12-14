@@ -20,6 +20,8 @@ end
 #
 # @api public
 module Poseidon
+  LONG_MAX = 9223372036854775807
+
   def self.timestamp_ms
     (Time.unix_microtime * 1000).to_i
   end
@@ -151,3 +153,4 @@ require "poseidon/record_batch"
 require "poseidon/future_record_metadata"
 require "poseidon/produce_request_result"
 require "poseidon/record_metadata"
+require "poseidon/ready_check_result"
