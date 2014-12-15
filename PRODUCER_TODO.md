@@ -1,16 +1,21 @@
-- Get metadata crap to work correctly.
-
-- Speeding up specs
 - ACKS!
-- Keep going down the current path?
 - Should we use the ERRROR array for the selector? Probabaly send all connections to it?
 - Selector: add broker id to Stream instead of inverted index
 - Thread safety?!
 - Add an option to automatically run callbacks in their own thread pool?
 
-# Cleanup
+- Fix purgatory issue, possibly also submit patch for issue.
 
-- Investigate crazy metadata update stuff
+# Cleanup
+- Consistently use `node` and `node_id`
+- Clean up ClientRequest/NetworkSend/etc crap 
+- Organize classes?
+
+# Ruby Improvements
+
+- Investigate crazy timeout stuff, make it more declarative.
+- Investigate if a state machine approach would make sense for any of this?
+- Use hashes instead of structs where it makes sense.
 
 # New tests
 

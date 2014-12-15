@@ -145,7 +145,14 @@ module Poseidon
         when Symbol
           buffer.send(type, value)
         else
-          value.write(buffer)
+          case value
+          when String
+            # If the value is a string assume it's the encoded
+            # version of the expected struct.
+            buffer.append(value)
+          when ProtocolStruct
+            value.write(buffer)
+          end
         end
       end
 

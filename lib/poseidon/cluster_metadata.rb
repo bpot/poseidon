@@ -46,7 +46,7 @@ module Poseidon
       start = Poseidon.timestamp_ms
       remaining_wait_ms = max_wait_ms
       while @version <= last_version
-        puts "Waiting for metadata for #{remaining_wait_ms}"
+        #puts "Waiting for metadata for #{remaining_wait_ms}"
         @mutex.synchronize { @condition.wait(@mutex, remaining_wait_ms / 1000.0) }
 
         elapsed = Poseidon.timestamp_ms - start
@@ -76,16 +76,18 @@ module Poseidon
     # @param [MetadataResponse] topic_metadata_response
     # @return nil
     def update(topic_metadata_response)
-      update_brokers(topic_metadata_response.brokers)
-      update_topics(topic_metadata_response.topics)
-      update_broker_to_partition_map(topic_metadata_response.topics)
-
-      @last_refreshed_at = Time.now
+      #puts "[#{Poseidon.timestamp_ms}] Updated metadata"
       @last_refresh_ms = Poseidon.timestamp_ms
-      @need_update = false
 
-      @version += 1
-      @mutex.synchronize { @condition.broadcast }
+      if topic_metadata_response.brokers.any?
+        update_brokers(topic_metadata_response.brokers)
+        update_topics(topic_metadata_response.topics)
+        update_broker_to_partition_map(topic_metadata_response.topics)
+        @need_update = false
+        @version += 1
+        @mutex.synchronize { @condition.broadcast }
+      end
+
       nil
     end
 

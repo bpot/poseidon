@@ -5,10 +5,11 @@ module Poseidon
       @record_batches_by_topic_partition = {}
     end
 
-    def add(topic, key, value, partition_id, compression, cb)
+    def append(topic, key, value, partition_id, compression, cb)
       topic_partition = TopicPartition.new(topic, partition_id)
       @record_batches_by_topic_partition[topic_partition] ||= RecordBatch.new(topic_partition)
-      @record_batches_by_topic_partition[topic_partition].try_append(key,value, cb)
+      future = @record_batches_by_topic_partition[topic_partition].try_append(key,value, cb)
+      RecordAppendResult.new(future, nil, nil)
     end
 
     def ready(cluster_metadata)
@@ -19,6 +20,7 @@ module Poseidon
       # exhausted = false
       @record_batches_by_topic_partition.keys.each do |topic_partition|
         leader = cluster_metadata.lead_broker_for_partition(topic_partition.topic, topic_partition.partition)
+        puts "[#{Poseidon.timestamp_ms}] Leader for topic partition #{leader.inspect}"
         if leader.nil?
           unknown_leaders_exist = true
         elsif !ready_brokers.include?(leader)
@@ -33,21 +35,22 @@ module Poseidon
     end
 
     def drain(cluster_metadata, ready_brokers)
+      puts "READY BROKERS: #{ready_brokers.inspect}"
       return if ready_brokers.empty?
 
-      @batches = {}
+      batches = {}
       ready_brokers.each do |broker|
-        @batches[broker.id] ||= []
+        batches[broker.id] ||= []
         partitions = cluster_metadata.partitions_for_broker(broker)
         partitions.each do |partition|
           topic_partition = TopicPartition.new(partition[:topic], partition[:partition].id)
           if record_batch = @record_batches_by_topic_partition[topic_partition]
-            @batches[broker.id] << record_batch
+            batches[broker.id] << record_batch
             @record_batches_by_topic_partition.delete(topic_partition)
           end
         end
       end
-      @batches
+      batches
     end
 
     def close

@@ -1,12 +1,14 @@
 module Poseidon
   class RecordBatch
-    attr_reader :records, :topic_partition
+    attr_reader :topic_partition
     def initialize(topic_partition)
       @topic_partition = topic_partition
       @produce_request_result = ProduceRequestResult.new
-      @records = []
+      # XXX
+      @memory_records = MemoryRecords.new(nil, nil)
       @thunks = []
       @attempts = 0
+      @record_count = 0
     end
 
     def topic
@@ -21,23 +23,25 @@ module Poseidon
       @produce_request_result.done(@topic_partition, base_offset, error)
       @thunks.each do |callback, future|
         if error.nil?
-          callback.call(future)
+          callback.call(future, nil)
         else
-          raise "ZOMG DONNU BOUT ERRRS"
+          callback.call(nil, error)
         end
       end
     end
 
     def try_append(key, value, callback = nil)
-      @records << {
-        key: key,
-        value: value
-      }
-      future = FutureRecordMetadata.new(@produce_request_result, @records.size - 1)
+      @memory_records.append(key, value)
+      future = FutureRecordMetadata.new(@produce_request_result, @record_count)
       if callback
         @thunks << [callback, future]
       end
+      @record_count += 1
       future
+    end
+
+    def message_set
+      @memory_records.to_s
     end
   end
 end

@@ -25,13 +25,16 @@ module Poseidon
     def send_message(message_to_send, &cb)
       wait_on_metadata(message_to_send.topic)
 
-      #pp @cluster_metadata
-
       partition_id, _ = @message_conductor.destination(message_to_send.topic, message_to_send.key)
 
-      #puts "Sending to #{partition_id}"
-      future = @record_accumulator.add(message_to_send.topic, message_to_send.key, message_to_send.value, partition_id, compression = nil, cb)
-      future 
+      puts "[#{Poseidon.timestamp_ms}] Appending record"
+      append_result = @record_accumulator.append(message_to_send.topic, message_to_send.key, message_to_send.value, partition_id, compression = nil, cb)
+      puts "[#{Poseidon.timestamp_ms}] Record appeneded"
+
+      # XXX HAX!
+      @sender.wakeup
+
+      append_result.future
     end
 
     def close

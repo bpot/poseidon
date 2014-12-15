@@ -16,7 +16,11 @@ module Poseidon
 
     private
     def value_or_error
-      @value ||= RecordMetadata.new(@producer_request_result.topic_partition, @producer_request_result.base_offset, @record_offset)
+      if @producer_request_result.error
+        raise @producer_request_result.error
+      else
+        @value ||= RecordMetadata.new(@producer_request_result.topic_partition, @producer_request_result.base_offset, @record_offset)
+      end
     end
   end
 end

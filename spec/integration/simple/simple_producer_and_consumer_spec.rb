@@ -6,7 +6,6 @@ RSpec.describe "simple producer and consumer", :type => :request do
     it "fetches produced messages" do
       @producer = NewProducer.new("test_client", ["localhost:9092"])
 
-
       cb_triggered = false
       future = @producer.send_message(MessageToSend.new("topic_simple_producer_and_consumer", "Hello World")) do |metadata, error|
         cb_triggered = true
@@ -46,6 +45,7 @@ RSpec.describe "simple producer and consumer", :type => :request do
 
       # Second Batch
       message = MessageToSend.new("topic_simple_producer_and_consumer", "Hello World Again")
+      puts "Sending second batch!"
       expect { @producer.send_message(message).get }.to_not raise_error
 
       messages = @consumer.fetch

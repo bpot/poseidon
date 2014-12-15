@@ -10,6 +10,7 @@ module Poseidon
       @connection_states = {}
       @connection_attempted_at = {}
       @metadata_fetch_in_progress = false
+      @last_no_node_available_ms = 0
     end
 
     def ready(node)
@@ -17,11 +18,8 @@ module Poseidon
         return true
       end
 
-      if @connection_states[node.id].nil? # TODO check for backoff
-        @selector.connect(node.id, node.host, node.port)
-
-        @connection_states[node.id] = :connecting
-        @connection_attempted_at[node.id] = Poseidon.timestamp_ms
+      if !node_blacked_out?(node.id)
+        initiate_connect(node)
       end
 
       return false
@@ -30,21 +28,23 @@ module Poseidon
     def poll(client_requests, timeout)
       network_sends = []
       client_requests.each do |client_request|
-        puts "[#{Poseidon.timestamp_ms}] Sending: #{client_request.inspect}"
+        #puts "[#{Poseidon.timestamp_ms}] Sending: #{client_request.inspect}"
         network_sends << NetworkSend.new(client_request.request)
         @in_flight_requests.add(client_request)
       end
 
       time_to_next_metadata_update = @cluster_metadata.time_to_next_update
-      #time_to_next_reconnect_attempt = @last_no_node_available_ms + @cluster_metadata.refresh_backoff_ms
-      time_to_next_reconnect_attempt = 0
-      metadata_timeout = [time_to_next_metadata_update, time_to_next_reconnect_attempt].max
+      #puts "[#{Poseidon.timestamp_ms}] Time To Next Update #{time_to_next_metadata_update}"
+      time_to_next_reconnect_attempt = [@last_no_node_available_ms + @cluster_metadata.refresh_backoff_ms - Poseidon.timestamp_ms, 0].max
+      wait_for_metadata_fetch = @metadata_fetch_in_progress ? INT_MAX : 0
+      metadata_timeout = [time_to_next_metadata_update, time_to_next_reconnect_attempt, wait_for_metadata_fetch].max
 
-      puts "[#{Poseidon.timestamp_ms}] Metadata Time: #{metadata_timeout}"
+      #puts "[#{Poseidon.timestamp_ms}] Metadata Timeout: #{metadata_timeout}"
       if !@metadata_fetch_in_progress && metadata_timeout == 0
         maybe_update_metadata(network_sends)
       end
 
+      #puts "[NetworkClient] min(#{timeout}, #{metadata_timeout})"
       poll_timeout = [timeout, metadata_timeout].min
       @selector.poll(poll_timeout, network_sends)
 
@@ -55,22 +55,27 @@ module Poseidon
       end
 
       @selector.disconnected.each do |broker_id|
+        puts "[#{Poseidon.timestamp_ms}] Handling disconnected node: #{broker_id}"
         @connection_states[broker_id] = :disconnected
 
         # Cancel any inflight requests
-        requests = @in_flight_requests.clear_all(broker_id)
-        requests.each do |request|
-          api_key = Protocol.api_key_for_id(request.struct.common.api_key)
-          if api_key == :produce
+        client_requests = @in_flight_requests.clear_all(broker_id)
+        client_requests.each do |request|
+          #puts "Handling request in flight during disconnect: #{request.inspect}"
+          api_key = Protocol.api_key_for_id(request.request.struct.common.api_key)
+          #puts "API KEY: #{api_key}"
+          if api_key == :metadata
+            #puts "Metadata cancel!"
             @metadata_fetch_in_progress = false
           else
+            #puts "Canceling requests because node disconnected"
             responses << ClientResponse.new(request, true, nil)
           end
         end
       end
 
       if @selector.disconnected.any?
-        # XXX REFRESH METADATA
+        @cluster_metadata.request_update
       end
 
       @selector.completed_receives.each do |completed_receive|
@@ -96,9 +101,11 @@ module Poseidon
       @metadata_fetch_in_progress = false
 
       metadata_response = Protocol::MetadataResponse.read(response_buffer)
-      if metadata_response.brokers.any?
+      #if metadata_response.brokers.any?
         @cluster_metadata.update(metadata_response)
-      end
+      #else
+      #  puts "[#{Poseidon.timestamp_ms}] Not updating metadata because no brokers (#{metadata_response.inspect})"
+      #end
     end
 
     def next_request_header(request_type)
@@ -116,11 +123,11 @@ module Poseidon
     end
 
     def connection_delay(node)
-      if (state = @connection_states[node].nil?)
+      if (state = @connection_states[node.id].nil?)
         return 0
       end
 
-      time_waited = Poseidon.timestamp_ms - @connection_attempted_at[node]
+      time_waited = Poseidon.timestamp_ms - @connection_attempted_at[node.id]
       if state == :disconnected
         return [@reconnect_backoff_ms, 0].max
       else
@@ -129,29 +136,62 @@ module Poseidon
     end
 
     private
+    def initiate_connect(node)
+      @connection_states[node.id] = :connecting
+
+      @selector.connect(node.id, node.host, node.port)
+      @connection_attempted_at[node.id] = Poseidon.timestamp_ms
+    end
+
     def maybe_update_metadata(sends)
       node = least_loaded_node
       if node.nil?
-        raise "Uhhh cantr handle this"
+        #puts "[#{Poseidon.timestamp_ms}] No least loaded node available"
+        @last_no_node_available_ms = Poseidon.timestamp_ms
+        return
       end
 
       if @connection_states[node.id] == :connected
-        puts "[#{Poseidon.timestamp_ms}] Sending metadata command"
+        #puts "[#{Poseidon.timestamp_ms}] Sending metadata command"
         metadata_fetch_request = Protocol::MetadataRequest.new(next_request_header(:metadata), @cluster_metadata.topics_of_interest)
         request_send = RequestSend.new(node.id, metadata_fetch_request)
         client_request = ClientRequest.new(request_send)
         sends << NetworkSend.new(request_send)
         @in_flight_requests.add(client_request)
         @metadata_fetch_in_progress = true
-      else #if can connected?
-        # start connect!
-        @selector.connect(node.id, node.host, node.port)
+      elsif !node_blacked_out?(node.id)
+        initiate_connect(node)
+        @last_no_node_available_ms = Poseidon.timestamp_ms
+      else
+        @last_no_node_available_ms = Poseidon.timestamp_ms
       end
     end
 
-    # XXX stub
     def least_loaded_node
-      @cluster_metadata.brokers.values.first 
+      in_flight = nil
+      found = nil
+
+      nodes = @cluster_metadata.brokers.values.shuffle
+      nodes.each do |node|
+        curr_in_flight = @in_flight_requests.in_flight_request_count(node.id)
+        if curr_in_flight == 0 && @connection_states[node.id] &&  @connection_states[node.id] == :connected
+          return node
+        elsif !node_blacked_out?(node.id) && (in_flight.nil? || curr_in_flight < in_flight)
+          found = node
+          in_flight = curr_in_flight
+        end
+      end
+
+      found
+    end
+
+    def node_blacked_out?(node_id)
+      state = @connection_states[node_id]
+      if state.nil?
+        return false
+      else
+        return state == :disconnected && (Poseidon.timestamp_ms - @connection_attempted_at[node_id] < @reconnect_backoff_ms)
+      end
     end
 
     def sendable?(broker)

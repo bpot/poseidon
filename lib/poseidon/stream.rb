@@ -35,9 +35,9 @@ module Poseidon
           #p "CONNECTED"
           return :connected
         rescue IO::WaitWritable
-          p $!
+          p "HANDLE READ: #{$!.inspect}"
         rescue StandardError
-          p $!
+          p "HANDLE READ ERRR: #{$!.inspect}"
         end
       elsif @state == :connected && @sends.any?
         send = @sends.first

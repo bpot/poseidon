@@ -15,6 +15,7 @@ module Poseidon
     API_KEYS_INVERTED = Hash[API_KEYS.map(&:reverse)].freeze
 
     def self.api_key_for_id(id)
+      pp API_KEYS_INVERTED
       API_KEYS_INVERTED[id] 
     end
 

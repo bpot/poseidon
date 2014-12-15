@@ -24,10 +24,12 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
       @p = NewProducer.new("test", ["localhost:9092"], :required_acks => 1)
     end
 
+=begin
     context "broker stops running" do
       it "fails to send" do
         expect { 
           @p.send_message(MessageToSend.new("test", "hello")).get
+          puts "Completed initial send"
         }.to_not raise_error
 
         $tc.broker.without_process do
@@ -38,23 +40,33 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
       end
     end
   end
+=end
 
-=begin
     context "broker stops running but starts again" do
       it "sends succesfully once broker returns" do
-        expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
+        expect {
+          @p.send_message(MessageToSend.new("test", "hello")).get
+        }.to_not raise_error
 
+        sent_when_down = nil
         $tc.broker.without_process do
-          expect {
-            @p.send_messages([MessageToSend.new("test", "hello")])
-          }.to raise_error(Poseidon::Errors::UnableToFetchMetadata)
+          #expect {
+            sent_when_down = @p.send_message(MessageToSend.new("test", "hello"))
+          #}.to raise_error(Poseidon::Errors::UnableToFetchMetadata)
         end
 
-        expect(@p.send_messages([MessageToSend.new("test", "hello")])).to eq(true)
+        expect {
+          @p.send_message(MessageToSend.new("test", "hello")).get
+        }.to_not raise_error
+
+        expect {
+          sent_when_down.get
+        }.to_not raise_error
       end
     end
   end
 
+=begin
   context "producer with required_acks set to 0" do
     before(:each) do
       @p = Producer.new(["localhost:9092"], "test", :required_acks => 0)

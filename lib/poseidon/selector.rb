@@ -13,7 +13,7 @@ module Poseidon
       @disconnected = []
 
       @wait, @wake = IO.pipe
-      puts "PIPE: #{@wait.inspect} #{@wake.inspect}"
+      #puts "PIPE: #{@wait.inspect} #{@wake.inspect}"
     end
 
     def connect(broker_id, host, port)
@@ -22,7 +22,7 @@ module Poseidon
       begin
         sock.connect_nonblock(sockaddr)
       rescue IO::WaitWritable
-        p $!
+        p "First nonblock: #{$!.inspect}"
       end
 
       @streams[broker_id] = Stream.new(sock, sockaddr)
@@ -62,7 +62,7 @@ module Poseidon
       reads = @streams.values#.select(&:read?)
       writes = @streams.values.select(&:write?)
       can_read, can_write, = IO.select(reads + [@wait], writes, nil, poll_timeout / 1000.0)
-      puts "Select finished: #{can_read.inspect} to read, #{can_write.inspect} to write, timeout: #{poll_timeout/1000.0}"
+      puts "[#{Poseidon.timestamp_ms}] Select finished: #{can_read.inspect} to read, #{can_write.inspect} to write, timeout: #{poll_timeout/1000.0}"
       #pp can_read
       #pp can_write
       if can_write
@@ -88,7 +88,7 @@ module Poseidon
           begin
             completed = readable.handle_read
             @completed_receives += completed.map { |buffer| NetworkReceive.new(@streams_inverted[readable], buffer) }
-          rescue EOFError
+          rescue EOFError, Errno::ENOTCONN, Errno::ECONNRESET
             #puts "DISCONNECTED: #{readable}"
             # Need to do anything with the stream here?!
             # What if there are things to send in the buffer?!

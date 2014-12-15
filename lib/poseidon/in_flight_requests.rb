@@ -4,6 +4,16 @@ module Poseidon
       @requests = {}
     end
 
+    def in_flight_request_count(node)
+      requests = @requests[node]
+
+      if requests
+        requests.size
+      else
+        0
+      end
+    end
+
     def add(client_request)
       dest = client_request.request.destination
       @requests[dest] ||= []
@@ -15,7 +25,7 @@ module Poseidon
     end
 
     def clear_all(node)
-      @requests.delete(node)
+      @requests.delete(node) || []
     end
   end
 end

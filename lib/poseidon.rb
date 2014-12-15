@@ -21,6 +21,7 @@ end
 # @api public
 module Poseidon
   LONG_MAX = 9223372036854775807
+  INT_MAX = 2147483647
 
   def self.timestamp_ms
     (Time.unix_microtime * 1000).to_i
@@ -59,6 +60,18 @@ module Poseidon
     # @api private
     class MessageSizeTooLarge < ProtocolError; end
     # @api private
+    class StaleControllerEpoch < ProtocolError; end
+    # @api private
+    class OffsetMetadataTooLarge < ProtocolError; end
+    # @api private
+    class NetworkException < ProtocolError; end
+    # @api private
+    class OffsetsLoadInProgress < ProtocolError; end
+    # @api private
+    class ConsumerCoordinatorNotAvailable < ProtocolError; end
+    # @api private
+    class NotCoordinatorForConsumer < ProtocolError; end
+    # @api private
     class UnrecognizedProtocolError < ProtocolError; end
 
     # @api private
@@ -75,7 +88,13 @@ module Poseidon
       7 => RequestTimedOut,
       8 => BrokerNotAvailable,
       9 => ReplicaNotAvailable,
-      10 => MessageSizeTooLarge
+      10 => MessageSizeTooLarge,
+      11 => StaleControllerEpoch,
+      12 => OffsetMetadataTooLarge,
+      13 => NetworkException,
+      14 => OffsetsLoadInProgress,
+      15 => ConsumerCoordinatorNotAvailable,
+      16 => NotCoordinatorForConsumer
     }
 
     # Raised when a custom partitioner tries to send
@@ -154,3 +173,6 @@ require "poseidon/future_record_metadata"
 require "poseidon/produce_request_result"
 require "poseidon/record_metadata"
 require "poseidon/ready_check_result"
+require "poseidon/record_append_result"
+require "poseidon/memory_records"
+#require "poseidon/java_producer"
