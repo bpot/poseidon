@@ -7,8 +7,10 @@ module Poseidon
       @metadata_fetch_timeout_ms = 60_000
       @metadata_max_age = 5 * 60 * 1000
       @metadata_refresh_interval_ms = 600_000
-      @reconnect_backoff_ms = 10
+      @reconnect_backoff_ms = 100
       @refresh_backoff_ms = 100
+      @retries = options.delete(:retires) || 0
+      @retry_backoff_ms = 100
 
       @client_id          = client_id
       @cluster_metadata   = ClusterMetadata.new(@refresh_backoff_ms, @metadata_max_age)
@@ -18,8 +20,8 @@ module Poseidon
 
       @selector = Selector.new
       @client = NetworkClient.new(@selector, @client_id, @cluster_metadata, @reconnect_backoff_ms)
-      @record_accumulator = RecordAccumulator.new
-      @sender = ProducerSender.new(@client, @cluster_metadata, @record_accumulator)
+      @record_accumulator = RecordAccumulator.new(@retry_backoff_ms)
+      @sender = ProducerSender.new(@client, @cluster_metadata, @record_accumulator, @retries)
     end
 
     def send_message(message_to_send, &cb)

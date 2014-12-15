@@ -1,9 +1,11 @@
 module Poseidon
   class ProducerSender
-    def initialize(client, cluster_metadata, record_accumulator)
+    def initialize(client, cluster_metadata, record_accumulator, retries)
       @client = client
       @cluster_metadata = cluster_metadata
       @record_accumulator = record_accumulator
+
+      @retries = retries
 
       @running = true
       @sender_thread = start_sender_thread
@@ -16,6 +18,7 @@ module Poseidon
             run
           end
         rescue Exception
+          puts "Exception in sender thread"
           p $!
           puts $!.backtrace.join("\n")
           raise
@@ -106,18 +109,34 @@ module Poseidon
           end
         else
           produce_response = Protocol::ProduceResponse.read(response.response)
-          #pp "PRODUCE_RESPONSE: #{produce_response.inspect}"
+          puts "PRODUCE_RESPONSE: #{produce_response.inspect}"
           record_batches_by_topic_partition = response.request.attachment
           produce_response.topic_response.each do |topic_response|
             topic_response.partitions.each do |partition_response|
               topic_partition = TopicPartition.new(topic_response.topic, partition_response.partition)
-              # XXX first?
+              # XXX use a method?
+              error = Errors::ERROR_CODES[partition_response.error]
               record_batch = record_batches_by_topic_partition[topic_partition].first
-              record_batch.done(partition_response.offset)
+              complete_batch(record_batch, error, partition_response.offset, nil)
             end
           end
         end
       end
+    end
+
+    def complete_batch(batch, error, base_offset, correlation_id)
+      #p "Can we retry? #{can_retry(batch, error)} :: #{batch.inspect} #{error.inspect} #{(Errors::RetriableProtocolError === error)}"
+      if error && can_retry(batch, error)
+        puts "WE RETRY"
+        @record_accumulator.reenque(batch)
+      else
+        batch.done(base_offset, error)
+      end
+    end
+
+    def can_retry(batch, error)
+      # XXX use an attribute on the error class instead of looking at ancestors
+      batch.attempts < @retries && error.ancestors.include?(Errors::RetriableProtocolError)
     end
   end
 end

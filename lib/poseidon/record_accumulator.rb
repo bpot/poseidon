@@ -1,8 +1,9 @@
 module Poseidon
   class RecordAccumulator
     attr_reader :records
-    def initialize
+    def initialize(retry_backoff_ms)
       @record_batches_by_topic_partition = {}
+      @retry_backoff_ms = retry_backoff_ms
     end
 
     def append(topic, key, value, partition_id, compression, cb)
@@ -17,21 +18,44 @@ module Poseidon
       next_ready_check_delay_ms = LONG_MAX
       unknown_leaders_exist = false
 
-      # exhausted = false
+      exhausted = false
       @record_batches_by_topic_partition.keys.each do |topic_partition|
         leader = cluster_metadata.lead_broker_for_partition(topic_partition.topic, topic_partition.partition)
         puts "[#{Poseidon.timestamp_ms}] Leader for topic partition #{leader.inspect}"
         if leader.nil?
           unknown_leaders_exist = true
         elsif !ready_brokers.include?(leader)
-          # TODO just asssume sendable now...
-          backing_off = false
+          batch = @record_batches_by_topic_partition[topic_partition]
 
-          ready_brokers.add(leader)
+          if batch
+            now = Poseidon.timestamp_ms
+            backing_off = batch.attempts > 0 && batch.last_attempt_ms + @retry_backoff_ms > now
+            waited_time_ms = now - batch.last_attempt_ms
+            # XXX 0 should be linger_ms
+            time_to_wait_ms = backing_off ? @retry_backoff_ms : 0
+            time_left_ms = [time_to_wait_ms - waited_time_ms, 0].max
+            # XXX Based on number of things
+            full = false
+            expired = waited_time_ms >= time_to_wait_ms
+            sendable = full || expired || exhausted || closed
+
+            if sendable && !backing_off
+              ready_brokers.add(leader)
+            else
+              next_ready_check_delay_ms = [time_lift_ms, next_ready_check_delay_ms].min
+            end
+          end
         end
       end
 
       ReadyCheckResult.new(ready_brokers, next_ready_check_delay_ms, unknown_leaders_exist)
+    end
+
+    def reenque(record_batch)
+      record_batch.attempts += 1
+      record_batch.last_attempt_ms = Poseidon.timestamp_ms
+      #record_batches = @record_batches_by_topic_partition[record_batch.topic_partition] ||= []
+      @record_batches_by_topic_partition[record_batch.topic_partition] = record_batch
     end
 
     def drain(cluster_metadata, ready_brokers)

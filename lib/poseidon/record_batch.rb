@@ -1,5 +1,6 @@
 module Poseidon
   class RecordBatch
+    attr_accessor :attempts, :last_attempt_ms
     attr_reader :topic_partition
     def initialize(topic_partition)
       @topic_partition = topic_partition
@@ -9,6 +10,7 @@ module Poseidon
       @thunks = []
       @attempts = 0
       @record_count = 0
+      @last_attempt_ms = Poseidon.timestamp_ms
     end
 
     def topic

@@ -19,7 +19,7 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
     end
   end
 
-  context "producer with required_acks set to 1" do
+  context "producer with required_acks set to 1 and no retries" do
     before(:each) do
       @p = NewProducer.new("test", ["localhost:9092"], :required_acks => 1)
     end
@@ -43,25 +43,49 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
 =end
 
     context "broker stops running but starts again" do
-      it "sends succesfully once broker returns" do
+      it "failes to send when broker is down" do
         expect {
-          @p.send_message(MessageToSend.new("test", "hello")).get
+          metadata = @p.send_message(MessageToSend.new("test", "hello")).get
+          expect(metadata.topic).to eq("test")
+          expect(metadata.partition).to eq(0)
+          expect(metadata.offset).to eq(0)
         }.to_not raise_error
 
         sent_when_down = nil
         $tc.broker.without_process do
-          #expect {
-            sent_when_down = @p.send_message(MessageToSend.new("test", "hello"))
-          #}.to raise_error(Poseidon::Errors::UnableToFetchMetadata)
+          sent_when_down = @p.send_message(MessageToSend.new("test", "hello again"))
         end
 
         expect {
-          @p.send_message(MessageToSend.new("test", "hello")).get
+          sent_when_down.get
+        }.to raise_error(Errors::UnknownTopicOrPartition)
+      end
+    end
+  end
+
+  context "producer with required_acks set to 1 and 3 retries" do
+    before(:each) do
+      @p = NewProducer.new("test", ["localhost:9092"], required_acks: 1, retires: 3)
+    end
+
+    context "broker stops running but starts again" do
+      it "sends succesfully once broker returns" do
+        expect {
+          metadata = @p.send_message(MessageToSend.new("test", "hello")).get
+          expect(metadata.topic).to eq("test")
+          expect(metadata.partition).to eq(0)
+          expect(metadata.offset).to eq(0)
         }.to_not raise_error
 
-        expect {
-          sent_when_down.get
-        }.to_not raise_error
+        sent_when_down = nil
+        $tc.broker.without_process do
+          sent_when_down = @p.send_message(MessageToSend.new("test", "hello again"))
+        end
+
+        metadata = sent_when_down.get
+        expect(metadata.topic).to eq("test")
+        expect(metadata.partition).to eq(0)
+        expect(metadata.offset).to eq(1)
       end
     end
   end

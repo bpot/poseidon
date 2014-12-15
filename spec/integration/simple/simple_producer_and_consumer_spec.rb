@@ -24,6 +24,12 @@ RSpec.describe "simple producer and consumer", :type => :request do
       expect(messages.last.value).to eq("Hello World")
     end
 
+=begin
+    it "produces multiple records correctly" do
+      @producer = NewProducer.new("test_client", ["localhost:9092"])
+    end
+=end
+
     it "fetches only messages since the last offset" do
       @producer = NewProducer.new("test_client", ["localhost:9092"], :required_acks => 1)
 

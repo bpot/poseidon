@@ -101,6 +101,7 @@ module Poseidon
       @metadata_fetch_in_progress = false
 
       metadata_response = Protocol::MetadataResponse.read(response_buffer)
+      p "[#{Poseidon.timestamp_ms}] #{metadata_response.inspect}"
       #if metadata_response.brokers.any?
         @cluster_metadata.update(metadata_response)
       #else

@@ -7,15 +7,14 @@ RSpec.describe "compression", :type => :request do
     @consumer = PartitionConsumer.new("test_consumer", "localhost", 9092,
                                       "test12", 0, -2)
 
-    @producer = Producer.new(["localhost:9092"],
-                             "test_client",
-                             :type => :sync,
-                             :compression_codec => :gzip)
-    messages = [MessageToSend.new("test12", "Hello World: #{i}")]
+    @producer = NewProducer.new("test_client", ["localhost:9092"], :compression_codec => :gzip)
+    message = MessageToSend.new("test12", "Hello World: #{i}")
 
-    expect(@producer.send_messages(messages)).to eq(true)
+    @producer.send_messages(messages).get
     sleep 1
+
     messages = @consumer.fetch
+    pp messages
     expect(messages.last.value).to eq("Hello World: #{i}")
   end
 end

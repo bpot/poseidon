@@ -32,6 +32,9 @@ module Poseidon
     # @api private
     class ProtocolError < StandardError; end
 
+    # @api private
+    class RetriableProtocolError < ProtocolError; end
+
     # Protocol Exceptions
     #
     # These are defined by the Poseidon wire format,
@@ -44,7 +47,7 @@ module Poseidon
     # @api private
     class InvalidMessage < ProtocolError; end
     # @api private
-    class UnknownTopicOrPartition < ProtocolError; end
+    class UnknownTopicOrPartition < RetriableProtocolError; end
     # @api private
     class InvalidMessageSize < ProtocolError; end
     # @api private
