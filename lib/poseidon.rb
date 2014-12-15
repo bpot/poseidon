@@ -35,6 +35,9 @@ module Poseidon
     # @api private
     class RetriableProtocolError < ProtocolError; end
 
+    # @api private
+    class InvalidMetadataError < RetriableProtocolError; end
+
     # Protocol Exceptions
     #
     # These are defined by the Poseidon wire format,
@@ -53,7 +56,7 @@ module Poseidon
     # @api private
     class LeaderNotAvailable < ProtocolError; end
     # @api private
-    class NotLeaderForPartition < ProtocolError; end
+    class NotLeaderForPartition < InvalidMetadataError; end
     # @api private
     class RequestTimedOut < ProtocolError; end
     # @api private

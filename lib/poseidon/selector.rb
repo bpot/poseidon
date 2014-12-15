@@ -61,6 +61,7 @@ module Poseidon
 
       reads = @streams.values#.select(&:read?)
       writes = @streams.values.select(&:write?)
+      puts "[#{Poseidon.timestamp_ms}] Select timeout is #{poll_timeout / 1000.0}"
       can_read, can_write, = IO.select(reads + [@wait], writes, nil, poll_timeout / 1000.0)
       puts "[#{Poseidon.timestamp_ms}] Select finished: #{can_read.inspect} to read, #{can_write.inspect} to write, timeout: #{poll_timeout/1000.0}"
       #pp can_read

@@ -5,7 +5,7 @@ module Poseidon
       @partitioner = nil
       @socket_timeout_ms = 10_0000
       @metadata_fetch_timeout_ms = 60_000
-      @metadata_max_age = 5 * 60 * 1000
+      @metadata_max_age = 5 * 60 * 1_000
       @metadata_refresh_interval_ms = 600_000
       @reconnect_backoff_ms = 100
       @refresh_backoff_ms = 100

@@ -37,12 +37,12 @@ module Poseidon
             # XXX Based on number of things
             full = false
             expired = waited_time_ms >= time_to_wait_ms
-            sendable = full || expired || exhausted || closed
+            sendable = full || expired || exhausted # XXX || closed
 
             if sendable && !backing_off
               ready_brokers.add(leader)
             else
-              next_ready_check_delay_ms = [time_lift_ms, next_ready_check_delay_ms].min
+              next_ready_check_delay_ms = [time_left_ms, next_ready_check_delay_ms].min
             end
           end
         end
@@ -64,15 +64,15 @@ module Poseidon
 
       batches = {}
       ready_brokers.each do |broker|
-        batches[broker.id] ||= []
         partitions = cluster_metadata.partitions_for_broker(broker)
         partitions.each do |partition|
+          batches[broker.id] ||= []
           topic_partition = TopicPartition.new(partition[:topic], partition[:partition].id)
           if record_batch = @record_batches_by_topic_partition[topic_partition]
             batches[broker.id] << record_batch
             @record_batches_by_topic_partition.delete(topic_partition)
           end
-        end
+        end if partitions
       end
       batches
     end

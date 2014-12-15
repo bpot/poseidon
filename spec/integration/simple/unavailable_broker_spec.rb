@@ -6,6 +6,10 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
       @p = NewProducer.new("test", ["localhost:9091","localhost:9092"])
     end
 
+    after(:each) do
+      @p.close
+    end
+
     it "succesfully sends a message" do
       expect {
         @p.send_message(MessageToSend.new("test", "hello")).get
@@ -22,6 +26,10 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
   context "producer with required_acks set to 1 and no retries" do
     before(:each) do
       @p = NewProducer.new("test", ["localhost:9092"], :required_acks => 1)
+    end
+
+    after(:each) do
+      @p.close
     end
 
 =begin
@@ -65,7 +73,11 @@ RSpec.describe "unavailable broker scenarios:", :type => :request do
 
   context "producer with required_acks set to 1 and 3 retries" do
     before(:each) do
-      @p = NewProducer.new("test", ["localhost:9092"], required_acks: 1, retires: 3)
+      @p = NewProducer.new("test", ["localhost:9092"], required_acks: 1, retires: 300)
+    end
+
+    after(:each) do
+      @p.close
     end
 
     context "broker stops running but starts again" do

@@ -127,10 +127,15 @@ module Poseidon
     def complete_batch(batch, error, base_offset, correlation_id)
       #p "Can we retry? #{can_retry(batch, error)} :: #{batch.inspect} #{error.inspect} #{(Errors::RetriableProtocolError === error)}"
       if error && can_retry(batch, error)
-        puts "WE RETRY"
+        puts "[#{Poseidon.timestamp_ms}] WE RETRY"
         @record_accumulator.reenque(batch)
       else
         batch.done(base_offset, error)
+      end
+
+      if error && error.ancestors.include?(Errors::InvalidMetadataError)
+        puts "Requesting Update B/C Invalid Metadata"
+        @cluster_metadata.request_update
       end
     end
 
