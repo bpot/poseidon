@@ -120,7 +120,7 @@ module Poseidon
 
     def refresh_interval_elapsed?
       @cluster_metadata.last_refreshed_at.nil? ||
-        (Time.now - @cluster_metadata.last_refreshed_at) > metadata_refresh_interval_ms
+        (Time.now - @cluster_metadata.last_refreshed_at) * 1000 > metadata_refresh_interval_ms
     end
 
     def refresh_metadata(topics)

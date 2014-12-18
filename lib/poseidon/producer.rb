@@ -108,7 +108,7 @@ module Poseidon
     #   Topics to compress.  If this is not specified we will compress all
     #   topics provided that +:compression_codec+ is set.
     #
-    # @option options [Integer: Seconds] :metadata_refresh_interval_ms (600_000)
+    # @option options [Integer: Milliseconds] :metadata_refresh_interval_ms (600_000)
     #   How frequently we should update the topic metadata in milliseconds.
     #
     # @option options [#call, nil] :partitioner
