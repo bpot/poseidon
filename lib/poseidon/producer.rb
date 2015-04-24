@@ -146,7 +146,7 @@ module Poseidon
       @shutdown   = false
     end
 
-    # Send messages to the cluster.
+    # Send messages to the cluster. Raises an exception if the producer fails to send the messages.
     #
     # @param [Enumerable<MessageToSend>] messages
     #   Messages must have a +topic+ set and may have a +key+ set.
