@@ -1,6 +1,10 @@
 # Unmaintained
 
-This project is currently unmaintained. If you are interested in taking over the project please let me know. Another option for interacting with Kafka from Ruby is the [Kafka Rest](https://github.com/confluentinc/kafka-rest) project. If you are using JRuby you may want to look at [jruby-kafka](https://github.com/joekiller/jruby-kafka).
+This project is currently unmaintained. There are a handful of other options for interacting with Kafka from Ruby:
+
+  * A pure ruby client, [ruby-kafka](https://github.com/zendesk/ruby-kafka), which is 0.9 compatible and support consumer groups.
+  * A REST proxy, [Kafka Rest](https://github.com/confluentinc/kafka-rest).
+  * For JRuby there is [jruby-kafka](https://github.com/joekiller/jruby-kafka) which wraps the Java consumer.
 
 # Poseidon [![Build Status](https://travis-ci.org/bpot/poseidon.png?branch=master)](https://travis-ci.org/bpot/poseidon) [![Code Climate](https://codeclimate.com/github/bpot/poseidon.png)](https://codeclimate.com/github/bpot/poseidon)
 
